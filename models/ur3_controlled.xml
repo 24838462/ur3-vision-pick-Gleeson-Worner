@@ -59,12 +59,7 @@
   <contact>
     <exclude body1="base_link_inertia"
             body2="shoulder_link"/>
-
-    <!-- Temporary diagnostic exclusion -->
-    <exclude body1="forearm_link"
-            body2="wrist_2_link"/>
   </contact>
-  
 
   <actuator>
     <motor name="shoulder_pan_motor"

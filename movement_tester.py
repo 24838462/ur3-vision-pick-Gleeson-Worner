@@ -21,7 +21,7 @@ KD = np.array([20, 25, 20, 0.15, 0.15, 0.08], dtype=float)
 model_path = (
     Path(__file__).resolve().parent
     / "models"
-    / "ur3_controlled.xml"
+    / "ur3_collision_fixed.xml"
 )
 
 model = mujoco.MjModel.from_xml_path(str(model_path))
@@ -67,11 +67,11 @@ print("Close the viewer window to stop.")
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
 
-    # Display mesh collision hulls and contact locations.
     with viewer.lock():
+        viewer.opt.geomgroup[3] = 0
         viewer.opt.flags[
             mujoco.mjtVisFlag.mjVIS_CONVEXHULL
-        ] = False
+        ] = True
 
         viewer.opt.flags[
             mujoco.mjtVisFlag.mjVIS_CONTACTPOINT

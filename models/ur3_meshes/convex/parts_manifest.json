@@ -1,0 +1,524 @@
+{
+  "forearm": [
+    {
+      "name": "forearm_convex_00",
+      "file": "ur3_meshes/convex/forearm_convex_00.stl"
+    },
+    {
+      "name": "forearm_convex_01",
+      "file": "ur3_meshes/convex/forearm_convex_01.stl"
+    },
+    {
+      "name": "forearm_convex_02",
+      "file": "ur3_meshes/convex/forearm_convex_02.stl"
+    },
+    {
+      "name": "forearm_convex_03",
+      "file": "ur3_meshes/convex/forearm_convex_03.stl"
+    },
+    {
+      "name": "forearm_convex_04",
+      "file": "ur3_meshes/convex/forearm_convex_04.stl"
+    }
+  ],
+  "base": [
+    {
+      "name": "base_convex_00",
+      "file": "ur3_meshes/convex/base/base_convex_00.stl"
+    },
+    {
+      "name": "base_convex_01",
+      "file": "ur3_meshes/convex/base/base_convex_01.stl"
+    },
+    {
+      "name": "base_convex_02",
+      "file": "ur3_meshes/convex/base/base_convex_02.stl"
+    },
+    {
+      "name": "base_convex_03",
+      "file": "ur3_meshes/convex/base/base_convex_03.stl"
+    },
+    {
+      "name": "base_convex_04",
+      "file": "ur3_meshes/convex/base/base_convex_04.stl"
+    },
+    {
+      "name": "base_convex_05",
+      "file": "ur3_meshes/convex/base/base_convex_05.stl"
+    },
+    {
+      "name": "base_convex_06",
+      "file": "ur3_meshes/convex/base/base_convex_06.stl"
+    },
+    {
+      "name": "base_convex_07",
+      "file": "ur3_meshes/convex/base/base_convex_07.stl"
+    },
+    {
+      "name": "base_convex_08",
+      "file": "ur3_meshes/convex/base/base_convex_08.stl"
+    },
+    {
+      "name": "base_convex_09",
+      "file": "ur3_meshes/convex/base/base_convex_09.stl"
+    },
+    {
+      "name": "base_convex_10",
+      "file": "ur3_meshes/convex/base/base_convex_10.stl"
+    },
+    {
+      "name": "base_convex_11",
+      "file": "ur3_meshes/convex/base/base_convex_11.stl"
+    },
+    {
+      "name": "base_convex_12",
+      "file": "ur3_meshes/convex/base/base_convex_12.stl"
+    },
+    {
+      "name": "base_convex_13",
+      "file": "ur3_meshes/convex/base/base_convex_13.stl"
+    },
+    {
+      "name": "base_convex_14",
+      "file": "ur3_meshes/convex/base/base_convex_14.stl"
+    },
+    {
+      "name": "base_convex_15",
+      "file": "ur3_meshes/convex/base/base_convex_15.stl"
+    },
+    {
+      "name": "base_convex_16",
+      "file": "ur3_meshes/convex/base/base_convex_16.stl"
+    },
+    {
+      "name": "base_convex_17",
+      "file": "ur3_meshes/convex/base/base_convex_17.stl"
+    },
+    {
+      "name": "base_convex_18",
+      "file": "ur3_meshes/convex/base/base_convex_18.stl"
+    },
+    {
+      "name": "base_convex_19",
+      "file": "ur3_meshes/convex/base/base_convex_19.stl"
+    },
+    {
+      "name": "base_convex_20",
+      "file": "ur3_meshes/convex/base/base_convex_20.stl"
+    },
+    {
+      "name": "base_convex_21",
+      "file": "ur3_meshes/convex/base/base_convex_21.stl"
+    },
+    {
+      "name": "base_convex_22",
+      "file": "ur3_meshes/convex/base/base_convex_22.stl"
+    }
+  ],
+  "shoulder": [
+    {
+      "name": "shoulder_convex_00",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_00.stl"
+    },
+    {
+      "name": "shoulder_convex_01",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_01.stl"
+    },
+    {
+      "name": "shoulder_convex_02",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_02.stl"
+    },
+    {
+      "name": "shoulder_convex_03",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_03.stl"
+    },
+    {
+      "name": "shoulder_convex_04",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_04.stl"
+    },
+    {
+      "name": "shoulder_convex_05",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_05.stl"
+    },
+    {
+      "name": "shoulder_convex_06",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_06.stl"
+    },
+    {
+      "name": "shoulder_convex_07",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_07.stl"
+    },
+    {
+      "name": "shoulder_convex_08",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_08.stl"
+    },
+    {
+      "name": "shoulder_convex_09",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_09.stl"
+    },
+    {
+      "name": "shoulder_convex_10",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_10.stl"
+    },
+    {
+      "name": "shoulder_convex_11",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_11.stl"
+    },
+    {
+      "name": "shoulder_convex_12",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_12.stl"
+    },
+    {
+      "name": "shoulder_convex_13",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_13.stl"
+    },
+    {
+      "name": "shoulder_convex_14",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_14.stl"
+    },
+    {
+      "name": "shoulder_convex_15",
+      "file": "ur3_meshes/convex/shoulder/shoulder_convex_15.stl"
+    }
+  ],
+  "upperarm": [
+    {
+      "name": "upperarm_convex_00",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_00.stl"
+    },
+    {
+      "name": "upperarm_convex_01",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_01.stl"
+    },
+    {
+      "name": "upperarm_convex_02",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_02.stl"
+    },
+    {
+      "name": "upperarm_convex_03",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_03.stl"
+    },
+    {
+      "name": "upperarm_convex_04",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_04.stl"
+    },
+    {
+      "name": "upperarm_convex_05",
+      "file": "ur3_meshes/convex/upperarm/upperarm_convex_05.stl"
+    }
+  ],
+  "wrist1": [
+    {
+      "name": "wrist1_convex_00",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_00.stl"
+    },
+    {
+      "name": "wrist1_convex_01",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_01.stl"
+    },
+    {
+      "name": "wrist1_convex_02",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_02.stl"
+    },
+    {
+      "name": "wrist1_convex_03",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_03.stl"
+    },
+    {
+      "name": "wrist1_convex_04",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_04.stl"
+    },
+    {
+      "name": "wrist1_convex_05",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_05.stl"
+    },
+    {
+      "name": "wrist1_convex_06",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_06.stl"
+    },
+    {
+      "name": "wrist1_convex_07",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_07.stl"
+    },
+    {
+      "name": "wrist1_convex_08",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_08.stl"
+    },
+    {
+      "name": "wrist1_convex_09",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_09.stl"
+    },
+    {
+      "name": "wrist1_convex_10",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_10.stl"
+    },
+    {
+      "name": "wrist1_convex_11",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_11.stl"
+    },
+    {
+      "name": "wrist1_convex_12",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_12.stl"
+    },
+    {
+      "name": "wrist1_convex_13",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_13.stl"
+    },
+    {
+      "name": "wrist1_convex_14",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_14.stl"
+    },
+    {
+      "name": "wrist1_convex_15",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_15.stl"
+    },
+    {
+      "name": "wrist1_convex_16",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_16.stl"
+    },
+    {
+      "name": "wrist1_convex_17",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_17.stl"
+    },
+    {
+      "name": "wrist1_convex_18",
+      "file": "ur3_meshes/convex/wrist1/wrist1_convex_18.stl"
+    }
+  ],
+  "wrist2": [
+    {
+      "name": "wrist2_convex_00",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_00.stl"
+    },
+    {
+      "name": "wrist2_convex_01",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_01.stl"
+    },
+    {
+      "name": "wrist2_convex_02",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_02.stl"
+    },
+    {
+      "name": "wrist2_convex_03",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_03.stl"
+    },
+    {
+      "name": "wrist2_convex_04",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_04.stl"
+    },
+    {
+      "name": "wrist2_convex_05",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_05.stl"
+    },
+    {
+      "name": "wrist2_convex_06",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_06.stl"
+    },
+    {
+      "name": "wrist2_convex_07",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_07.stl"
+    },
+    {
+      "name": "wrist2_convex_08",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_08.stl"
+    },
+    {
+      "name": "wrist2_convex_09",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_09.stl"
+    },
+    {
+      "name": "wrist2_convex_10",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_10.stl"
+    },
+    {
+      "name": "wrist2_convex_11",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_11.stl"
+    },
+    {
+      "name": "wrist2_convex_12",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_12.stl"
+    },
+    {
+      "name": "wrist2_convex_13",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_13.stl"
+    },
+    {
+      "name": "wrist2_convex_14",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_14.stl"
+    },
+    {
+      "name": "wrist2_convex_15",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_15.stl"
+    },
+    {
+      "name": "wrist2_convex_16",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_16.stl"
+    },
+    {
+      "name": "wrist2_convex_17",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_17.stl"
+    },
+    {
+      "name": "wrist2_convex_18",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_18.stl"
+    },
+    {
+      "name": "wrist2_convex_19",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_19.stl"
+    },
+    {
+      "name": "wrist2_convex_20",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_20.stl"
+    },
+    {
+      "name": "wrist2_convex_21",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_21.stl"
+    },
+    {
+      "name": "wrist2_convex_22",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_22.stl"
+    },
+    {
+      "name": "wrist2_convex_23",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_23.stl"
+    },
+    {
+      "name": "wrist2_convex_24",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_24.stl"
+    },
+    {
+      "name": "wrist2_convex_25",
+      "file": "ur3_meshes/convex/wrist2/wrist2_convex_25.stl"
+    }
+  ],
+  "wrist3": [
+    {
+      "name": "wrist3_convex_00",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_00.stl"
+    },
+    {
+      "name": "wrist3_convex_01",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_01.stl"
+    },
+    {
+      "name": "wrist3_convex_02",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_02.stl"
+    },
+    {
+      "name": "wrist3_convex_03",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_03.stl"
+    },
+    {
+      "name": "wrist3_convex_04",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_04.stl"
+    },
+    {
+      "name": "wrist3_convex_05",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_05.stl"
+    },
+    {
+      "name": "wrist3_convex_06",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_06.stl"
+    },
+    {
+      "name": "wrist3_convex_07",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_07.stl"
+    },
+    {
+      "name": "wrist3_convex_08",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_08.stl"
+    },
+    {
+      "name": "wrist3_convex_09",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_09.stl"
+    },
+    {
+      "name": "wrist3_convex_10",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_10.stl"
+    },
+    {
+      "name": "wrist3_convex_11",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_11.stl"
+    },
+    {
+      "name": "wrist3_convex_12",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_12.stl"
+    },
+    {
+      "name": "wrist3_convex_13",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_13.stl"
+    },
+    {
+      "name": "wrist3_convex_14",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_14.stl"
+    },
+    {
+      "name": "wrist3_convex_15",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_15.stl"
+    },
+    {
+      "name": "wrist3_convex_16",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_16.stl"
+    },
+    {
+      "name": "wrist3_convex_17",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_17.stl"
+    },
+    {
+      "name": "wrist3_convex_18",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_18.stl"
+    },
+    {
+      "name": "wrist3_convex_19",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_19.stl"
+    },
+    {
+      "name": "wrist3_convex_20",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_20.stl"
+    },
+    {
+      "name": "wrist3_convex_21",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_21.stl"
+    },
+    {
+      "name": "wrist3_convex_22",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_22.stl"
+    },
+    {
+      "name": "wrist3_convex_23",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_23.stl"
+    },
+    {
+      "name": "wrist3_convex_24",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_24.stl"
+    },
+    {
+      "name": "wrist3_convex_25",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_25.stl"
+    },
+    {
+      "name": "wrist3_convex_26",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_26.stl"
+    },
+    {
+      "name": "wrist3_convex_27",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_27.stl"
+    },
+    {
+      "name": "wrist3_convex_28",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_28.stl"
+    },
+    {
+      "name": "wrist3_convex_29",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_29.stl"
+    },
+    {
+      "name": "wrist3_convex_30",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_30.stl"
+    },
+    {
+      "name": "wrist3_convex_31",
+      "file": "ur3_meshes/convex/wrist3/wrist3_convex_31.stl"
+    }
+  ]
+}
