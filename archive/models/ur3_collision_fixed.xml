@@ -168,7 +168,12 @@
                     <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3" contype="0" conaffinity="0" group="1" />
                     <body name="ft_frame" quat="0 1 0 0" />
                     <body name="flange" quat="0.5 -0.5 -0.5 -0.5">
-                      <body name="tool0" quat="0.5 0.5 0.5 0.5" />
+                      <body name="tool0" quat="0.5 0.5 0.5 0.5">
+                        <camera name="wrist_camera"
+                                pos="0.04 0 0.03"
+                                quat="0 1 0 0"
+                                fovy="60"/>
+                      </body>
                     </body>
                     <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_00" name="wrist_3_link_wrist3_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
                     <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_01" name="wrist_3_link_wrist3_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
@@ -308,7 +313,9 @@
     </body>
   </worldbody>
   <contact>
-    </contact>
+    <exclude body1="base_link_inertia"
+            body2="shoulder_link"/>
+  </contact>
   <actuator>
     <motor name="shoulder_pan_motor" joint="shoulder_pan_joint" gear="1" ctrllimited="true" ctrlrange="-56 56" />
     <motor name="shoulder_lift_motor" joint="shoulder_lift_joint" gear="1" ctrllimited="true" ctrlrange="-56 56" />

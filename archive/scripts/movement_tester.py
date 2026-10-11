@@ -33,7 +33,7 @@ if model.nq != 6 or model.nv != 6 or model.nu != 6:
 
 home_q = np.deg2rad(HOME_DEG)
 
-TARGET_DEG = np.array([0, 0, 0, 90, 0, -90], dtype=float)
+TARGET_DEG = np.array([0, 0, 0, 90, 270, 90], dtype=float)
 target_q = np.deg2rad(TARGET_DEG)
 
 # Check that the base target is inside its configured limits.

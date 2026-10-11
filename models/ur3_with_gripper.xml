@@ -1,0 +1,469 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mujoco model="ur3">
+  <compiler angle="radian" autolimits="true" />
+  <option timestep="0.001" integrator="implicitfast" cone="elliptic" impratio="10" />
+  <asset>
+    <mesh name="base" content_type="model/stl" file="ur3_meshes/collision/base.stl" />
+    <mesh name="shoulder" content_type="model/stl" file="ur3_meshes/collision/shoulder.stl" />
+    <mesh name="upperarm" content_type="model/stl" file="ur3_meshes/collision/upperarm.stl" />
+    <mesh name="forearm" content_type="model/stl" file="ur3_meshes/collision/forearm.stl" />
+    <mesh name="wrist1" content_type="model/stl" file="ur3_meshes/collision/wrist1.stl" />
+    <mesh name="wrist2" content_type="model/stl" file="ur3_meshes/collision/wrist2.stl" />
+    <mesh name="wrist3" content_type="model/stl" file="ur3_meshes/collision/wrist3.stl" />
+    <mesh name="base_convex_00" file="ur3_meshes/convex/base/base_convex_00.stl" />
+    <mesh name="base_convex_01" file="ur3_meshes/convex/base/base_convex_01.stl" />
+    <mesh name="base_convex_02" file="ur3_meshes/convex/base/base_convex_02.stl" />
+    <mesh name="base_convex_03" file="ur3_meshes/convex/base/base_convex_03.stl" />
+    <mesh name="base_convex_04" file="ur3_meshes/convex/base/base_convex_04.stl" />
+    <mesh name="base_convex_05" file="ur3_meshes/convex/base/base_convex_05.stl" />
+    <mesh name="base_convex_06" file="ur3_meshes/convex/base/base_convex_06.stl" />
+    <mesh name="base_convex_07" file="ur3_meshes/convex/base/base_convex_07.stl" />
+    <mesh name="base_convex_08" file="ur3_meshes/convex/base/base_convex_08.stl" />
+    <mesh name="base_convex_09" file="ur3_meshes/convex/base/base_convex_09.stl" />
+    <mesh name="base_convex_10" file="ur3_meshes/convex/base/base_convex_10.stl" />
+    <mesh name="base_convex_11" file="ur3_meshes/convex/base/base_convex_11.stl" />
+    <mesh name="base_convex_12" file="ur3_meshes/convex/base/base_convex_12.stl" />
+    <mesh name="base_convex_13" file="ur3_meshes/convex/base/base_convex_13.stl" />
+    <mesh name="base_convex_14" file="ur3_meshes/convex/base/base_convex_14.stl" />
+    <mesh name="base_convex_15" file="ur3_meshes/convex/base/base_convex_15.stl" />
+    <mesh name="base_convex_16" file="ur3_meshes/convex/base/base_convex_16.stl" />
+    <mesh name="base_convex_17" file="ur3_meshes/convex/base/base_convex_17.stl" />
+    <mesh name="base_convex_18" file="ur3_meshes/convex/base/base_convex_18.stl" />
+    <mesh name="base_convex_19" file="ur3_meshes/convex/base/base_convex_19.stl" />
+    <mesh name="base_convex_20" file="ur3_meshes/convex/base/base_convex_20.stl" />
+    <mesh name="base_convex_21" file="ur3_meshes/convex/base/base_convex_21.stl" />
+    <mesh name="base_convex_22" file="ur3_meshes/convex/base/base_convex_22.stl" />
+    <mesh name="shoulder_convex_00" file="ur3_meshes/convex/shoulder/shoulder_convex_00.stl" />
+    <mesh name="shoulder_convex_01" file="ur3_meshes/convex/shoulder/shoulder_convex_01.stl" />
+    <mesh name="shoulder_convex_02" file="ur3_meshes/convex/shoulder/shoulder_convex_02.stl" />
+    <mesh name="shoulder_convex_03" file="ur3_meshes/convex/shoulder/shoulder_convex_03.stl" />
+    <mesh name="shoulder_convex_04" file="ur3_meshes/convex/shoulder/shoulder_convex_04.stl" />
+    <mesh name="shoulder_convex_05" file="ur3_meshes/convex/shoulder/shoulder_convex_05.stl" />
+    <mesh name="shoulder_convex_06" file="ur3_meshes/convex/shoulder/shoulder_convex_06.stl" />
+    <mesh name="shoulder_convex_07" file="ur3_meshes/convex/shoulder/shoulder_convex_07.stl" />
+    <mesh name="shoulder_convex_08" file="ur3_meshes/convex/shoulder/shoulder_convex_08.stl" />
+    <mesh name="shoulder_convex_09" file="ur3_meshes/convex/shoulder/shoulder_convex_09.stl" />
+    <mesh name="shoulder_convex_10" file="ur3_meshes/convex/shoulder/shoulder_convex_10.stl" />
+    <mesh name="shoulder_convex_11" file="ur3_meshes/convex/shoulder/shoulder_convex_11.stl" />
+    <mesh name="shoulder_convex_12" file="ur3_meshes/convex/shoulder/shoulder_convex_12.stl" />
+    <mesh name="shoulder_convex_13" file="ur3_meshes/convex/shoulder/shoulder_convex_13.stl" />
+    <mesh name="shoulder_convex_14" file="ur3_meshes/convex/shoulder/shoulder_convex_14.stl" />
+    <mesh name="shoulder_convex_15" file="ur3_meshes/convex/shoulder/shoulder_convex_15.stl" />
+    <mesh name="upperarm_convex_00" file="ur3_meshes/convex/upperarm/upperarm_convex_00.stl" />
+    <mesh name="upperarm_convex_01" file="ur3_meshes/convex/upperarm/upperarm_convex_01.stl" />
+    <mesh name="upperarm_convex_02" file="ur3_meshes/convex/upperarm/upperarm_convex_02.stl" />
+    <mesh name="upperarm_convex_03" file="ur3_meshes/convex/upperarm/upperarm_convex_03.stl" />
+    <mesh name="upperarm_convex_04" file="ur3_meshes/convex/upperarm/upperarm_convex_04.stl" />
+    <mesh name="upperarm_convex_05" file="ur3_meshes/convex/upperarm/upperarm_convex_05.stl" />
+    <mesh name="forearm_convex_00" file="ur3_meshes/convex/forearm_convex_00.stl" />
+    <mesh name="forearm_convex_01" file="ur3_meshes/convex/forearm_convex_01.stl" />
+    <mesh name="forearm_convex_02" file="ur3_meshes/convex/forearm_convex_02.stl" />
+    <mesh name="forearm_convex_03" file="ur3_meshes/convex/forearm_convex_03.stl" />
+    <mesh name="forearm_convex_04" file="ur3_meshes/convex/forearm_convex_04.stl" />
+    <mesh name="wrist1_convex_00" file="ur3_meshes/convex/wrist1/wrist1_convex_00.stl" />
+    <mesh name="wrist1_convex_01" file="ur3_meshes/convex/wrist1/wrist1_convex_01.stl" />
+    <mesh name="wrist1_convex_02" file="ur3_meshes/convex/wrist1/wrist1_convex_02.stl" />
+    <mesh name="wrist1_convex_03" file="ur3_meshes/convex/wrist1/wrist1_convex_03.stl" />
+    <mesh name="wrist1_convex_04" file="ur3_meshes/convex/wrist1/wrist1_convex_04.stl" />
+    <mesh name="wrist1_convex_05" file="ur3_meshes/convex/wrist1/wrist1_convex_05.stl" />
+    <mesh name="wrist1_convex_06" file="ur3_meshes/convex/wrist1/wrist1_convex_06.stl" />
+    <mesh name="wrist1_convex_07" file="ur3_meshes/convex/wrist1/wrist1_convex_07.stl" />
+    <mesh name="wrist1_convex_08" file="ur3_meshes/convex/wrist1/wrist1_convex_08.stl" />
+    <mesh name="wrist1_convex_09" file="ur3_meshes/convex/wrist1/wrist1_convex_09.stl" />
+    <mesh name="wrist1_convex_10" file="ur3_meshes/convex/wrist1/wrist1_convex_10.stl" />
+    <mesh name="wrist1_convex_11" file="ur3_meshes/convex/wrist1/wrist1_convex_11.stl" />
+    <mesh name="wrist1_convex_12" file="ur3_meshes/convex/wrist1/wrist1_convex_12.stl" />
+    <mesh name="wrist1_convex_13" file="ur3_meshes/convex/wrist1/wrist1_convex_13.stl" />
+    <mesh name="wrist1_convex_14" file="ur3_meshes/convex/wrist1/wrist1_convex_14.stl" />
+    <mesh name="wrist1_convex_15" file="ur3_meshes/convex/wrist1/wrist1_convex_15.stl" />
+    <mesh name="wrist1_convex_16" file="ur3_meshes/convex/wrist1/wrist1_convex_16.stl" />
+    <mesh name="wrist1_convex_17" file="ur3_meshes/convex/wrist1/wrist1_convex_17.stl" />
+    <mesh name="wrist1_convex_18" file="ur3_meshes/convex/wrist1/wrist1_convex_18.stl" />
+    <mesh name="wrist2_convex_00" file="ur3_meshes/convex/wrist2/wrist2_convex_00.stl" />
+    <mesh name="wrist2_convex_01" file="ur3_meshes/convex/wrist2/wrist2_convex_01.stl" />
+    <mesh name="wrist2_convex_02" file="ur3_meshes/convex/wrist2/wrist2_convex_02.stl" />
+    <mesh name="wrist2_convex_03" file="ur3_meshes/convex/wrist2/wrist2_convex_03.stl" />
+    <mesh name="wrist2_convex_04" file="ur3_meshes/convex/wrist2/wrist2_convex_04.stl" />
+    <mesh name="wrist2_convex_05" file="ur3_meshes/convex/wrist2/wrist2_convex_05.stl" />
+    <mesh name="wrist2_convex_06" file="ur3_meshes/convex/wrist2/wrist2_convex_06.stl" />
+    <mesh name="wrist2_convex_07" file="ur3_meshes/convex/wrist2/wrist2_convex_07.stl" />
+    <mesh name="wrist2_convex_08" file="ur3_meshes/convex/wrist2/wrist2_convex_08.stl" />
+    <mesh name="wrist2_convex_09" file="ur3_meshes/convex/wrist2/wrist2_convex_09.stl" />
+    <mesh name="wrist2_convex_10" file="ur3_meshes/convex/wrist2/wrist2_convex_10.stl" />
+    <mesh name="wrist2_convex_11" file="ur3_meshes/convex/wrist2/wrist2_convex_11.stl" />
+    <mesh name="wrist2_convex_12" file="ur3_meshes/convex/wrist2/wrist2_convex_12.stl" />
+    <mesh name="wrist2_convex_13" file="ur3_meshes/convex/wrist2/wrist2_convex_13.stl" />
+    <mesh name="wrist2_convex_14" file="ur3_meshes/convex/wrist2/wrist2_convex_14.stl" />
+    <mesh name="wrist2_convex_15" file="ur3_meshes/convex/wrist2/wrist2_convex_15.stl" />
+    <mesh name="wrist2_convex_16" file="ur3_meshes/convex/wrist2/wrist2_convex_16.stl" />
+    <mesh name="wrist2_convex_17" file="ur3_meshes/convex/wrist2/wrist2_convex_17.stl" />
+    <mesh name="wrist2_convex_18" file="ur3_meshes/convex/wrist2/wrist2_convex_18.stl" />
+    <mesh name="wrist2_convex_19" file="ur3_meshes/convex/wrist2/wrist2_convex_19.stl" />
+    <mesh name="wrist2_convex_20" file="ur3_meshes/convex/wrist2/wrist2_convex_20.stl" />
+    <mesh name="wrist2_convex_21" file="ur3_meshes/convex/wrist2/wrist2_convex_21.stl" />
+    <mesh name="wrist2_convex_22" file="ur3_meshes/convex/wrist2/wrist2_convex_22.stl" />
+    <mesh name="wrist2_convex_23" file="ur3_meshes/convex/wrist2/wrist2_convex_23.stl" />
+    <mesh name="wrist2_convex_24" file="ur3_meshes/convex/wrist2/wrist2_convex_24.stl" />
+    <mesh name="wrist2_convex_25" file="ur3_meshes/convex/wrist2/wrist2_convex_25.stl" />
+    <mesh name="wrist3_convex_00" file="ur3_meshes/convex/wrist3/wrist3_convex_00.stl" />
+    <mesh name="wrist3_convex_01" file="ur3_meshes/convex/wrist3/wrist3_convex_01.stl" />
+    <mesh name="wrist3_convex_02" file="ur3_meshes/convex/wrist3/wrist3_convex_02.stl" />
+    <mesh name="wrist3_convex_03" file="ur3_meshes/convex/wrist3/wrist3_convex_03.stl" />
+    <mesh name="wrist3_convex_04" file="ur3_meshes/convex/wrist3/wrist3_convex_04.stl" />
+    <mesh name="wrist3_convex_05" file="ur3_meshes/convex/wrist3/wrist3_convex_05.stl" />
+    <mesh name="wrist3_convex_06" file="ur3_meshes/convex/wrist3/wrist3_convex_06.stl" />
+    <mesh name="wrist3_convex_07" file="ur3_meshes/convex/wrist3/wrist3_convex_07.stl" />
+    <mesh name="wrist3_convex_08" file="ur3_meshes/convex/wrist3/wrist3_convex_08.stl" />
+    <mesh name="wrist3_convex_09" file="ur3_meshes/convex/wrist3/wrist3_convex_09.stl" />
+    <mesh name="wrist3_convex_10" file="ur3_meshes/convex/wrist3/wrist3_convex_10.stl" />
+    <mesh name="wrist3_convex_11" file="ur3_meshes/convex/wrist3/wrist3_convex_11.stl" />
+    <mesh name="wrist3_convex_12" file="ur3_meshes/convex/wrist3/wrist3_convex_12.stl" />
+    <mesh name="wrist3_convex_13" file="ur3_meshes/convex/wrist3/wrist3_convex_13.stl" />
+    <mesh name="wrist3_convex_14" file="ur3_meshes/convex/wrist3/wrist3_convex_14.stl" />
+    <mesh name="wrist3_convex_15" file="ur3_meshes/convex/wrist3/wrist3_convex_15.stl" />
+    <mesh name="wrist3_convex_16" file="ur3_meshes/convex/wrist3/wrist3_convex_16.stl" />
+    <mesh name="wrist3_convex_17" file="ur3_meshes/convex/wrist3/wrist3_convex_17.stl" />
+    <mesh name="wrist3_convex_18" file="ur3_meshes/convex/wrist3/wrist3_convex_18.stl" />
+    <mesh name="wrist3_convex_19" file="ur3_meshes/convex/wrist3/wrist3_convex_19.stl" />
+    <mesh name="wrist3_convex_20" file="ur3_meshes/convex/wrist3/wrist3_convex_20.stl" />
+    <mesh name="wrist3_convex_21" file="ur3_meshes/convex/wrist3/wrist3_convex_21.stl" />
+    <mesh name="wrist3_convex_22" file="ur3_meshes/convex/wrist3/wrist3_convex_22.stl" />
+    <mesh name="wrist3_convex_23" file="ur3_meshes/convex/wrist3/wrist3_convex_23.stl" />
+    <mesh name="wrist3_convex_24" file="ur3_meshes/convex/wrist3/wrist3_convex_24.stl" />
+    <mesh name="wrist3_convex_25" file="ur3_meshes/convex/wrist3/wrist3_convex_25.stl" />
+    <mesh name="wrist3_convex_26" file="ur3_meshes/convex/wrist3/wrist3_convex_26.stl" />
+    <mesh name="wrist3_convex_27" file="ur3_meshes/convex/wrist3/wrist3_convex_27.stl" />
+    <mesh name="wrist3_convex_28" file="ur3_meshes/convex/wrist3/wrist3_convex_28.stl" />
+    <mesh name="wrist3_convex_29" file="ur3_meshes/convex/wrist3/wrist3_convex_29.stl" />
+    <mesh name="wrist3_convex_30" file="ur3_meshes/convex/wrist3/wrist3_convex_30.stl" />
+    <mesh name="wrist3_convex_31" file="ur3_meshes/convex/wrist3/wrist3_convex_31.stl" />
+    <material name="gripper_metal" rgba="0.58 0.58 0.58 1" />
+    <material name="gripper_silicone" rgba="0.1882 0.1882 0.1882 1" />
+    <material name="gripper_gray" rgba="0.4627 0.4627 0.4627 1" />
+    <material name="gripper_black" rgba="0.149 0.149 0.149 1" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/base_mount.stl" name="gripper_base_mount" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/base.stl" name="gripper_base" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/driver.stl" name="gripper_driver" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/coupler.stl" name="gripper_coupler" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/follower.stl" name="gripper_follower" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/pad.stl" name="gripper_pad" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/silicone_pad.stl" name="gripper_silicone_pad" />
+    <mesh class="gripper_2f85" file="robotiq_2f85/assets/spring_link.stl" name="gripper_spring_link" />
+  </asset>
+  <worldbody>
+    <body name="base_link">
+      <body name="base_link_inertia" quat="0 0 0 1">
+        <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="2" diaginertia="0.005625 0.00305317 0.00305317" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base" contype="0" conaffinity="0" group="1" />
+        <body name="shoulder_link" pos="0 0 0.1519">
+          <inertial pos="0 0 -0.02" mass="2" diaginertia="0.00809317 0.00809317 0.005625" />
+          <joint name="shoulder_pan_joint" range="-6.28319 6.28319" actuatorfrcrange="-56 56" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder" contype="0" conaffinity="0" group="1" />
+          <body name="upper_arm_link" quat="0.707107 0.707107 0 0">
+            <inertial pos="-0.11365 0 0.1157" quat="0.5 0.5 0.5 0.5" mass="3.42" diaginertia="0.0217285 0.0217285 0.00961875" />
+            <joint name="shoulder_lift_joint" range="-6.28319 6.28319" actuatorfrcrange="-56 56" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm" contype="0" conaffinity="0" group="1" />
+            <body name="forearm_link" pos="-0.24365 0 0">
+              <inertial pos="-0.16325 0 0.0238" quat="0.5 0.5 0.5 0.5" mass="1.26" diaginertia="0.00654681 0.00654681 0.00354375" />
+              <joint name="elbow_joint" range="-3.14159 3.14159" actuatorfrcrange="-28 28" />
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm" contype="0" conaffinity="0" group="1" />
+              <body name="wrist_1_link" pos="-0.21325 0 0.11235">
+                <inertial pos="0 -0.01 0" quat="0.5 0.5 -0.5 0.5" mass="0.8" diaginertia="0.00225 0.00161064 0.00161064" />
+                <joint name="wrist_1_joint" range="-6.28319 6.28319" actuatorfrcrange="-12 12" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1" contype="0" conaffinity="0" group="1" />
+                <body name="wrist_2_link" pos="0 -0.08535 -1.75056e-11" quat="0.707107 0.707107 0 0">
+                  <inertial pos="0 0.01 0" quat="0.5 0.5 -0.5 0.5" mass="0.8" diaginertia="0.00225 0.00157217 0.00157217" />
+                  <joint name="wrist_2_joint" range="-6.28319 6.28319" actuatorfrcrange="-12 12" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2" contype="0" conaffinity="0" group="1" />
+                  <body name="wrist_3_link" pos="0 0.0819 -1.6798e-11" quat="0.707107 -0.707107 0 0">
+                    <inertial pos="0 0 -0.02" quat="0.5 0.5 -0.5 0.5" mass="0.35" diaginertia="0.0001792 0.000136267 0.000136267" />
+                    <joint name="wrist_3_joint" actuatorfrcrange="-12 12" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3" contype="0" conaffinity="0" group="1" />
+                    <body name="ft_frame" quat="0 1 0 0" />
+                    <body name="flange" quat="0.5 -0.5 -0.5 -0.5">
+                      <body name="tool0" quat="0.5 0.5 0.5 0.5">
+                        <camera name="wrist_camera" pos="0 0 0.085" quat="0 1 0 0" fovy="60" />
+                        <body name="gripper_base_mount" pos="0 0 0.007" childclass="gripper_2f85">
+                          <geom class="gripper_visual" mesh="gripper_base_mount" material="gripper_black" />
+                          <geom class="gripper_collision" mesh="gripper_base_mount" />
+                          <body name="gripper_base" pos="0 0 0.0038" quat="1 0 0 -1">
+                            <inertial mass="0.777441" pos="0 -2.70394e-05 0.0354675" quat="1 -0.00152849 0 0" diaginertia="0.000260285 0.000225381 0.000152708" />
+                            <geom class="gripper_visual" mesh="gripper_base" material="gripper_black" />
+                            <geom class="gripper_collision" mesh="gripper_base" />
+                            <site name="gripper_pinch" pos="0 0 0.145" type="sphere" group="5" rgba="0.9 0.9 0.9 1" size="0.005" />
+                            <body name="gripper_right_driver" pos="0 0.0306011 0.054904">
+                              <inertial mass="0.00899563" pos="2.96931e-12 0.0177547 0.00107314" quat="0.681301 0.732003 0 0" diaginertia="1.72352e-06 1.60906e-06 3.22006e-07" />
+                              <joint name="gripper_right_driver_joint" class="gripper_driver" />
+                              <geom class="gripper_visual" mesh="gripper_driver" material="gripper_gray" />
+                              <geom class="gripper_collision" mesh="gripper_driver" />
+                              <body name="gripper_right_coupler" pos="0 0.0315 -0.0041">
+                                <inertial mass="0.0140974" pos="0 0.00301209 0.0232175" quat="0.705636 -0.0455904 0.0455904 0.705636" diaginertia="4.16206e-06 3.52216e-06 8.88131e-07" />
+                                <joint name="gripper_right_coupler_joint" class="gripper_coupler" />
+                                <geom class="gripper_visual" mesh="gripper_coupler" material="gripper_black" />
+                                <geom class="gripper_collision" mesh="gripper_coupler" />
+                              </body>
+                            </body>
+                            <body name="gripper_right_spring_link" pos="0 0.0132 0.0609">
+                              <inertial mass="0.0221642" pos="-8.65005e-09 0.0181624 0.0212658" quat="0.663403 -0.244737 0.244737 0.663403" diaginertia="8.96853e-06 6.71733e-06 2.63931e-06" />
+                              <joint name="gripper_right_spring_link_joint" class="gripper_spring_link" />
+                              <geom class="gripper_visual" mesh="gripper_spring_link" material="gripper_black" />
+                              <geom class="gripper_collision" mesh="gripper_spring_link" />
+                              <body name="gripper_right_follower" pos="0 0.055 0.0375">
+                                <inertial mass="0.0125222" pos="0 -0.011046 0.0124786" quat="1 0.1664 0 0" diaginertia="2.67415e-06 2.4559e-06 6.02031e-07" />
+                                <joint name="gripper_right_follower_joint" class="gripper_follower" />
+                                <geom class="gripper_visual" mesh="gripper_follower" material="gripper_black" />
+                                <geom class="gripper_collision" mesh="gripper_follower" />
+                                <body name="gripper_right_pad" pos="0 -0.0189 0.01352">
+                                  <geom class="gripper_pad_box1" name="gripper_right_pad1" />
+                                  <geom class="gripper_pad_box2" name="gripper_right_pad2" />
+                                  <inertial mass="0.0035" pos="0 -0.0025 0.0185" quat="0.707107 0 0 0.707107" diaginertia="4.73958e-07 3.64583e-07 1.23958e-07" />
+                                  <geom class="gripper_visual" mesh="gripper_pad" />
+                                  <body name="gripper_right_silicone_pad">
+                                    <geom class="gripper_visual" mesh="gripper_silicone_pad" material="gripper_black" />
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                            <body name="gripper_left_driver" pos="0 -0.0306011 0.054904" quat="0 0 0 1">
+                              <inertial mass="0.00899563" pos="0 0.0177547 0.00107314" quat="0.681301 0.732003 0 0" diaginertia="1.72352e-06 1.60906e-06 3.22006e-07" />
+                              <joint name="gripper_left_driver_joint" class="gripper_driver" />
+                              <geom class="gripper_visual" mesh="gripper_driver" material="gripper_gray" />
+                              <geom class="gripper_collision" mesh="gripper_driver" />
+                              <body name="gripper_left_coupler" pos="0 0.0315 -0.0041">
+                                <inertial mass="0.0140974" pos="0 0.00301209 0.0232175" quat="0.705636 -0.0455904 0.0455904 0.705636" diaginertia="4.16206e-06 3.52216e-06 8.88131e-07" />
+                                <joint name="gripper_left_coupler_joint" class="gripper_coupler" />
+                                <geom class="gripper_visual" mesh="gripper_coupler" material="gripper_black" />
+                                <geom class="gripper_collision" mesh="gripper_coupler" />
+                              </body>
+                            </body>
+                            <body name="gripper_left_spring_link" pos="0 -0.0132 0.0609" quat="0 0 0 1">
+                              <inertial mass="0.0221642" pos="-8.65005e-09 0.0181624 0.0212658" quat="0.663403 -0.244737 0.244737 0.663403" diaginertia="8.96853e-06 6.71733e-06 2.63931e-06" />
+                              <joint name="gripper_left_spring_link_joint" class="gripper_spring_link" />
+                              <geom class="gripper_visual" mesh="gripper_spring_link" material="gripper_black" />
+                              <geom class="gripper_collision" mesh="gripper_spring_link" />
+                              <body name="gripper_left_follower" pos="0 0.055 0.0375">
+                                <inertial mass="0.0125222" pos="0 -0.011046 0.0124786" quat="1 0.1664 0 0" diaginertia="2.67415e-06 2.4559e-06 6.02031e-07" />
+                                <joint name="gripper_left_follower_joint" class="gripper_follower" />
+                                <geom class="gripper_visual" mesh="gripper_follower" material="gripper_black" />
+                                <geom class="gripper_collision" mesh="gripper_follower" />
+                                <body name="gripper_left_pad" pos="0 -0.0189 0.01352">
+                                  <geom class="gripper_pad_box1" name="gripper_left_pad1" />
+                                  <geom class="gripper_pad_box2" name="gripper_left_pad2" />
+                                  <inertial mass="0.0035" pos="0 -0.0025 0.0185" quat="1 0 0 1" diaginertia="4.73958e-07 3.64583e-07 1.23958e-07" />
+                                  <geom class="gripper_visual" mesh="gripper_pad" />
+                                  <body name="gripper_left_silicone_pad">
+                                    <geom class="gripper_visual" mesh="gripper_silicone_pad" material="gripper_black" />
+                                  </body>
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_00" name="wrist_3_link_wrist3_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_01" name="wrist_3_link_wrist3_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_02" name="wrist_3_link_wrist3_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_03" name="wrist_3_link_wrist3_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_04" name="wrist_3_link_wrist3_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_05" name="wrist_3_link_wrist3_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_06" name="wrist_3_link_wrist3_collision_06" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_07" name="wrist_3_link_wrist3_collision_07" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_08" name="wrist_3_link_wrist3_collision_08" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_09" name="wrist_3_link_wrist3_collision_09" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_10" name="wrist_3_link_wrist3_collision_10" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_11" name="wrist_3_link_wrist3_collision_11" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_12" name="wrist_3_link_wrist3_collision_12" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_13" name="wrist_3_link_wrist3_collision_13" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_14" name="wrist_3_link_wrist3_collision_14" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_15" name="wrist_3_link_wrist3_collision_15" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_16" name="wrist_3_link_wrist3_collision_16" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_17" name="wrist_3_link_wrist3_collision_17" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_18" name="wrist_3_link_wrist3_collision_18" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_19" name="wrist_3_link_wrist3_collision_19" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_20" name="wrist_3_link_wrist3_collision_20" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_21" name="wrist_3_link_wrist3_collision_21" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_22" name="wrist_3_link_wrist3_collision_22" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_23" name="wrist_3_link_wrist3_collision_23" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_24" name="wrist_3_link_wrist3_collision_24" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_25" name="wrist_3_link_wrist3_collision_25" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_26" name="wrist_3_link_wrist3_collision_26" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_27" name="wrist_3_link_wrist3_collision_27" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_28" name="wrist_3_link_wrist3_collision_28" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_29" name="wrist_3_link_wrist3_collision_29" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_30" name="wrist_3_link_wrist3_collision_30" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                    <geom pos="0 -0.002 -0.082" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist3_convex_31" name="wrist_3_link_wrist3_collision_31" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  </body>
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_00" name="wrist_2_link_wrist2_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_01" name="wrist_2_link_wrist2_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_02" name="wrist_2_link_wrist2_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_03" name="wrist_2_link_wrist2_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_04" name="wrist_2_link_wrist2_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_05" name="wrist_2_link_wrist2_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_06" name="wrist_2_link_wrist2_collision_06" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_07" name="wrist_2_link_wrist2_collision_07" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_08" name="wrist_2_link_wrist2_collision_08" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_09" name="wrist_2_link_wrist2_collision_09" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_10" name="wrist_2_link_wrist2_collision_10" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_11" name="wrist_2_link_wrist2_collision_11" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_12" name="wrist_2_link_wrist2_collision_12" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_13" name="wrist_2_link_wrist2_collision_13" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_14" name="wrist_2_link_wrist2_collision_14" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_15" name="wrist_2_link_wrist2_collision_15" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_16" name="wrist_2_link_wrist2_collision_16" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_17" name="wrist_2_link_wrist2_collision_17" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_18" name="wrist_2_link_wrist2_collision_18" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_19" name="wrist_2_link_wrist2_collision_19" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_20" name="wrist_2_link_wrist2_collision_20" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_21" name="wrist_2_link_wrist2_collision_21" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_22" name="wrist_2_link_wrist2_collision_22" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_23" name="wrist_2_link_wrist2_collision_23" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_24" name="wrist_2_link_wrist2_collision_24" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                  <geom pos="0 0 -0.083" quat="1 0 0 0" type="mesh" mesh="wrist2_convex_25" name="wrist_2_link_wrist2_collision_25" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                </body>
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_00" name="wrist_1_link_wrist1_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_01" name="wrist_1_link_wrist1_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_02" name="wrist_1_link_wrist1_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_03" name="wrist_1_link_wrist1_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_04" name="wrist_1_link_wrist1_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_05" name="wrist_1_link_wrist1_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_06" name="wrist_1_link_wrist1_collision_06" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_07" name="wrist_1_link_wrist1_collision_07" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_08" name="wrist_1_link_wrist1_collision_08" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_09" name="wrist_1_link_wrist1_collision_09" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_10" name="wrist_1_link_wrist1_collision_10" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_11" name="wrist_1_link_wrist1_collision_11" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_12" name="wrist_1_link_wrist1_collision_12" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_13" name="wrist_1_link_wrist1_collision_13" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_14" name="wrist_1_link_wrist1_collision_14" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_15" name="wrist_1_link_wrist1_collision_15" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_16" name="wrist_1_link_wrist1_collision_16" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_17" name="wrist_1_link_wrist1_collision_17" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+                <geom pos="0 0 -0.085" quat="0.707107 0.707107 0 0" type="mesh" mesh="wrist1_convex_18" name="wrist_1_link_wrist1_collision_18" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+              </body>
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm_convex_00" name="forearm_link_forearm_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm_convex_01" name="forearm_link_forearm_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm_convex_02" name="forearm_link_forearm_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm_convex_03" name="forearm_link_forearm_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+              <geom pos="0 0 0.0275" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="forearm_convex_04" name="forearm_link_forearm_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            </body>
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_00" name="upper_arm_link_upperarm_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_01" name="upper_arm_link_upperarm_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_02" name="upper_arm_link_upperarm_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_03" name="upper_arm_link_upperarm_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_04" name="upper_arm_link_upperarm_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+            <geom pos="0 0 0.1198" quat="0.5 0.5 -0.5 -0.5" type="mesh" mesh="upperarm_convex_05" name="upper_arm_link_upperarm_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          </body>
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_00" name="shoulder_link_shoulder_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_01" name="shoulder_link_shoulder_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_02" name="shoulder_link_shoulder_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_03" name="shoulder_link_shoulder_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_04" name="shoulder_link_shoulder_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_05" name="shoulder_link_shoulder_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_06" name="shoulder_link_shoulder_collision_06" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_07" name="shoulder_link_shoulder_collision_07" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_08" name="shoulder_link_shoulder_collision_08" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_09" name="shoulder_link_shoulder_collision_09" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_10" name="shoulder_link_shoulder_collision_10" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_11" name="shoulder_link_shoulder_collision_11" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_12" name="shoulder_link_shoulder_collision_12" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_13" name="shoulder_link_shoulder_collision_13" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_14" name="shoulder_link_shoulder_collision_14" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+          <geom quat="0 0 0 1" type="mesh" mesh="shoulder_convex_15" name="shoulder_link_shoulder_collision_15" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        </body>
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_00" name="base_link_inertia_base_collision_00" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_01" name="base_link_inertia_base_collision_01" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_02" name="base_link_inertia_base_collision_02" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_03" name="base_link_inertia_base_collision_03" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_04" name="base_link_inertia_base_collision_04" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_05" name="base_link_inertia_base_collision_05" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_06" name="base_link_inertia_base_collision_06" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_07" name="base_link_inertia_base_collision_07" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_08" name="base_link_inertia_base_collision_08" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_09" name="base_link_inertia_base_collision_09" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_10" name="base_link_inertia_base_collision_10" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_11" name="base_link_inertia_base_collision_11" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_12" name="base_link_inertia_base_collision_12" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_13" name="base_link_inertia_base_collision_13" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_14" name="base_link_inertia_base_collision_14" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_15" name="base_link_inertia_base_collision_15" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_16" name="base_link_inertia_base_collision_16" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_17" name="base_link_inertia_base_collision_17" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_18" name="base_link_inertia_base_collision_18" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_19" name="base_link_inertia_base_collision_19" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_20" name="base_link_inertia_base_collision_20" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_21" name="base_link_inertia_base_collision_21" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+        <geom pos="0 0 0" quat="0 0 0 1" type="mesh" mesh="base_convex_22" name="base_link_inertia_base_collision_22" contype="1" conaffinity="1" group="3" rgba="0.9 0.3 0.1 0.35" density="0" />
+      </body>
+      <body name="base" quat="0 0 0 1" />
+    </body>
+  </worldbody>
+  <contact>
+    <exclude body1="base_link_inertia" body2="shoulder_link" />
+    <exclude body1="gripper_base" body2="gripper_left_driver" />
+    <exclude body1="gripper_base" body2="gripper_right_driver" />
+    <exclude body1="gripper_base" body2="gripper_left_spring_link" />
+    <exclude body1="gripper_base" body2="gripper_right_spring_link" />
+    <exclude body1="gripper_right_coupler" body2="gripper_right_follower" />
+    <exclude body1="gripper_left_coupler" body2="gripper_left_follower" />
+  </contact>
+  <actuator>
+    <motor name="shoulder_pan_motor" joint="shoulder_pan_joint" gear="1" ctrllimited="true" ctrlrange="-56 56" />
+    <motor name="shoulder_lift_motor" joint="shoulder_lift_joint" gear="1" ctrllimited="true" ctrlrange="-56 56" />
+    <motor name="elbow_motor" joint="elbow_joint" gear="1" ctrllimited="true" ctrlrange="-28 28" />
+    <motor name="wrist_1_motor" joint="wrist_1_joint" gear="1" ctrllimited="true" ctrlrange="-12 12" />
+    <motor name="wrist_2_motor" joint="wrist_2_joint" gear="1" ctrllimited="true" ctrlrange="-12 12" />
+    <motor name="wrist_3_motor" joint="wrist_3_joint" gear="1" ctrllimited="true" ctrlrange="-12 12" />
+    <general class="gripper_2f85" name="gripper_fingers_actuator" tendon="gripper_split" forcerange="-5 5" ctrlrange="0 255" gainprm="0.3137255 0 0" biasprm="0 -100 -10" />
+  </actuator>
+  <sensor>
+    <jointpos name="shoulder_pan_encoder" joint="shoulder_pan_joint" />
+    <jointpos name="shoulder_lift_encoder" joint="shoulder_lift_joint" />
+    <jointpos name="elbow_encoder" joint="elbow_joint" />
+    <jointpos name="wrist_1_encoder" joint="wrist_1_joint" />
+    <jointpos name="wrist_2_encoder" joint="wrist_2_joint" />
+    <jointpos name="wrist_3_encoder" joint="wrist_3_joint" />
+  </sensor>
+  <default>
+    <default class="gripper_2f85">
+      <mesh scale="0.001 0.001 0.001" />
+      <general biastype="affine" />
+      <joint axis="1 0 0" />
+      <default class="gripper_driver">
+        <joint range="0 0.8" armature="0.005" damping="0.1" solimplimit="0.95 0.99 0.001" solreflimit="0.005 1" />
+      </default>
+      <default class="gripper_follower">
+        <joint range="-0.872664 0.872664" armature="0.001" pos="0 -0.018 0.0065" solimplimit="0.95 0.99 0.001" solreflimit="0.005 1" />
+      </default>
+      <default class="gripper_spring_link">
+        <joint range="-0.29670597283 0.8" armature="0.001" stiffness="0.05" springref="2.62" damping="0.00125" />
+      </default>
+      <default class="gripper_coupler">
+        <joint range="-1.57 0" armature="0.001" solimplimit="0.95 0.99 0.001" solreflimit="0.005 1" />
+      </default>
+      <default class="gripper_visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2" />
+      </default>
+      <default class="gripper_collision">
+        <geom type="mesh" group="3" />
+        <default class="gripper_pad_box1">
+          <geom mass="0" type="box" pos="0 -0.0026 0.028125" size="0.011 0.004 0.009375" friction="0.7" solimp="0.95 0.99 0.001" solref="0.004 1" priority="1" rgba="0.55 0.55 0.55 1" />
+        </default>
+        <default class="gripper_pad_box2">
+          <geom mass="0" type="box" pos="0 -0.0026 0.009375" size="0.011 0.004 0.009375" friction="0.6" solimp="0.95 0.99 0.001" solref="0.004 1" priority="1" rgba="0.45 0.45 0.45 1" />
+        </default>
+      </default>
+    </default>
+  </default>
+  <tendon>
+    <fixed name="gripper_split">
+      <joint joint="gripper_right_driver_joint" coef="0.5" />
+      <joint joint="gripper_left_driver_joint" coef="0.5" />
+    </fixed>
+  </tendon>
+  <equality>
+    <connect anchor="0 0 0" body1="gripper_right_follower" body2="gripper_right_coupler" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <connect anchor="0 0 0" body1="gripper_left_follower" body2="gripper_left_coupler" solimp="0.95 0.99 0.001" solref="0.005 1" />
+    <joint joint1="gripper_right_driver_joint" joint2="gripper_left_driver_joint" polycoef="0 1 0 0 0" solimp="0.95 0.99 0.001" solref="0.005 1" />
+  </equality>
+</mujoco>
