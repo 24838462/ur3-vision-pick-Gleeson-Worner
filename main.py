@@ -1,18 +1,17 @@
 from pathlib import Path
 import argparse
 import time
-import xml.etree.ElementTree as ET
 
 import cv2
 import mujoco
 import mujoco.viewer
 import numpy as np
 
+from stacking import stack_cubes
+
 
 ROOT = Path(__file__).resolve().parent
-MODELS = ROOT / "models"
-SOURCE = MODELS / "ur3_pick_gripper_scene.xml"
-COMPLETE = MODELS / "ur3_complete.xml"
+COMPLETE = ROOT / "models" / "ur3_complete.xml"
 
 HOME_DEG = [0, -90, 90, -90, -90, 0]
 
@@ -37,98 +36,18 @@ MOTOR_NAMES = [
     "wrist_3_motor",
 ]
 
-# Cube half-sizes: full widths are 3, 4 and 5 cm.
-HALF_SIZES = [0.015, 0.020, 0.025]
-COLOURS = [
-    "0.9 0.1 0.1 1",
-    "0.1 0.8 0.2 1",
-    "0.1 0.3 0.9 1",
-]
-
-
-def expand_includes(path):
-    """Flatten the top-level includes used by our scene files."""
-    root = ET.parse(path).getroot()
-
-    for element in list(root):
-        if element.tag != "include":
-            continue
-
-        included = expand_includes(
-            path.parent / element.get("file")
-        )
-        index = list(root).index(element)
-        root.remove(element)
-
-        for offset, child in enumerate(list(included)):
-            root.insert(index + offset, child)
-
-    return root
-
-
-def compile_scene():
-    """Build one XML containing the robot, gripper and scene."""
-    root = expand_includes(SOURCE)
-    root.set("model", "ur3_complete")
-
-    # Remove the original fixed cube and any previous demo cubes.
-    for world in root.findall("worldbody"):
-        for body in list(world.findall("body")):
-            name = body.get("name", "")
-            if name == "target_cube" or name.startswith("cube_"):
-                world.remove(body)
-
-    world = root.find("worldbody")
-    if world is None:
-        raise ValueError("Scene has no worldbody.")
-
-    for index, half_size in enumerate(HALF_SIZES):
-        body = ET.SubElement(
-            world,
-            "body",
-            name=f"cube_{index}",
-            pos=f"{0.25 + index * 0.06} 0.15 "
-                f"{-0.01 + half_size + 0.002}",
-        )
-
-        ET.SubElement(
-            body,
-            "freejoint",
-            name=f"cube_{index}_joint",
-        )
-
-        ET.SubElement(
-            body,
-            "geom",
-            name=f"cube_{index}_geom",
-            type="box",
-            size=f"{half_size} {half_size} {half_size}",
-            mass="0.05",
-            rgba=COLOURS[index],
-            friction="0.8 0.005 0.0001",
-            contype="1",
-            conaffinity="1",
-        )
-
-    ET.indent(root, space="  ")
-    ET.ElementTree(root).write(
-        COMPLETE,
-        encoding="utf-8",
-        xml_declaration=True,
-    )
-
-    # Parse/compile and save a canonical combined XML.
-    # This checks model loading; it does not run physics.
-    model = mujoco.MjModel.from_xml_path(str(COMPLETE))
-    mujoco.mj_saveLastXML(str(COMPLETE), model)
-
-    print("Created:", COMPLETE)
+CUBE_COUNT = 3
+CAMERA_FPS = 30
+CAMERA_WIDTH = 640
+CAMERA_HEIGHT = 480
 
 
 def get_id(model, object_type, name):
     index = mujoco.mj_name2id(model, object_type, name)
+
     if index < 0:
         raise ValueError(f"Missing model element: {name}")
+
     return index
 
 
@@ -140,6 +59,7 @@ def run_scene(seed):
         get_id(model, mujoco.mjtObj.mjOBJ_JOINT, name)
         for name in JOINT_NAMES
     ])
+
     q_addresses = model.jnt_qposadr[joint_ids]
     v_addresses = model.jnt_dofadr[joint_ids]
 
@@ -147,6 +67,7 @@ def run_scene(seed):
         get_id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
         for name in MOTOR_NAMES
     ])
+
     gripper_id = get_id(
         model,
         mujoco.mjtObj.mjOBJ_ACTUATOR,
@@ -156,12 +77,25 @@ def run_scene(seed):
     home = np.deg2rad(HOME_DEG)
     data.qpos[q_addresses] = home
 
-    # Randomise cube positions in a small tabletop region.
+    # Read the table height from the compiled model.
+    mujoco.mj_forward(model, data)
+
+    # Top surface of the table in the current scene.
+    table_top = -0.01
+
+    # Randomise cube positions and orientations.
     rng = np.random.default_rng(seed)
     positions = []
 
-    for index, half_size in enumerate(HALF_SIZES):
-        for attempt in range(1000):
+    for index in range(CUBE_COUNT):
+        cube_geom = get_id(
+            model,
+            mujoco.mjtObj.mjOBJ_GEOM,
+            f"cube_{index}_geom",
+        )
+        half_size = float(model.geom_size[cube_geom, 0])
+
+        for _ in range(1000):
             xy = rng.uniform([0.22, 0.08], [0.38, 0.24])
 
             if all(
@@ -179,43 +113,62 @@ def run_scene(seed):
             mujoco.mjtObj.mjOBJ_JOINT,
             f"cube_{index}_joint",
         )
+
         address = model.jnt_qposadr[cube_joint]
         yaw = rng.uniform(-np.pi, np.pi)
 
         data.qpos[address:address + 3] = [
-            xy[0], xy[1], -0.01 + half_size + 0.002,
+            xy[0],
+            xy[1],
+            table_top + half_size + 0.002,
         ]
+
         data.qpos[address + 3:address + 7] = [
-            np.cos(yaw / 2), 0, 0, np.sin(yaw / 2),
+            np.cos(yaw / 2),
+            0,
+            0,
+            np.sin(yaw / 2),
         ]
 
     mujoco.mj_forward(model, data)
+
+    sequence = stack_cubes(
+        model,
+        data,
+        q_addresses,
+        v_addresses,
+        home,
+    )
+
+    desired_q = home.copy()
+    desired_qd = np.zeros(6)
+    gripper_command = 0.0
+    frozen = False
 
     options = mujoco.MjvOption()
     options.geomgroup[3] = 0
 
     window = "Wrist camera"
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window, 640, 480)
-
-    gripper_command = 0.0
-    frozen = False
+    cv2.resizeWindow(window, CAMERA_WIDTH, CAMERA_HEIGHT)
 
     dt = model.opt.timestep
-    steps_per_frame = max(1, round(1 / (30 * dt)))
+    steps_per_frame = max(1, round(1 / (CAMERA_FPS * dt)))
     frame_seconds = steps_per_frame * dt
 
     print("Three movable cubes spawned.")
-    print("Click the camera window before using keys.")
-    print("O = open | C = close | Q = exit")
-    print("Arm holds its home pose.")
+    print("Stacking starts automatically after settling.")
+    print("Press Q in the camera window to exit.")
 
     try:
         with mujoco.Renderer(
-            model, height=480, width=640
+            model,
+            height=CAMERA_HEIGHT,
+            width=CAMERA_WIDTH,
         ) as renderer:
             with mujoco.viewer.launch_passive(
-                model, data
+                model,
+                data,
             ) as viewer:
                 with viewer.lock():
                     viewer.opt.geomgroup[3] = 0
@@ -227,34 +180,52 @@ def run_scene(seed):
 
                     if not frozen:
                         for _ in range(steps_per_frame):
+                            try:
+                                (
+                                    desired_q,
+                                    desired_qd,
+                                    gripper_command,
+                                ) = next(sequence)
+
+                            except StopIteration:
+                                frozen = True
+                                print("Stacking sequence finished.")
+                                break
+
+                            except (RuntimeError, ValueError) as error:
+                                frozen = True
+                                print("STOPPED:", error)
+                                break
+
                             torque = (
                                 data.qfrc_bias[v_addresses]
                                 + KP * (
-                                    home - data.qpos[q_addresses]
+                                    desired_q
+                                    - data.qpos[q_addresses]
                                 )
-                                - KD * data.qvel[v_addresses]
+                                + KD * (
+                                    desired_qd
+                                    - data.qvel[v_addresses]
+                                )
                             )
 
                             data.ctrl[motor_ids] = np.clip(
                                 torque,
-                                model.actuator_ctrlrange[
-                                    motor_ids, 0
-                                ],
-                                model.actuator_ctrlrange[
-                                    motor_ids, 1
-                                ],
+                                model.actuator_ctrlrange[motor_ids, 0],
+                                model.actuator_ctrlrange[motor_ids, 1],
                             )
-                            data.ctrl[gripper_id] = (
-                                gripper_command
-                            )
+
+                            data.ctrl[gripper_id] = gripper_command
 
                             mujoco.mj_step(model, data)
 
                             error_deg = np.rad2deg(
-                                home - data.qpos[q_addresses]
+                                desired_q - data.qpos[q_addresses]
                             )
+
                             if (
                                 not np.all(np.isfinite(data.qpos))
+                                or not np.all(np.isfinite(data.qvel))
                                 or np.max(np.abs(error_deg)) > 10
                             ):
                                 frozen = True
@@ -272,7 +243,9 @@ def run_scene(seed):
                         camera="wrist_camera",
                         scene_option=options,
                     )
+
                     rgb = renderer.render()
+
                     cv2.imshow(
                         window,
                         cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
@@ -281,13 +254,10 @@ def run_scene(seed):
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
                         break
-                    if key == ord("o"):
-                        gripper_command = 0.0
-                    if key == ord("c"):
-                        gripper_command = 255.0
 
                     if cv2.getWindowProperty(
-                        window, cv2.WND_PROP_VISIBLE
+                        window,
+                        cv2.WND_PROP_VISIBLE,
                     ) < 1:
                         break
 
@@ -295,24 +265,28 @@ def run_scene(seed):
                         frame_seconds
                         - (time.perf_counter() - frame_start)
                     )
+
                     if remaining > 0:
                         time.sleep(remaining)
+
+    except KeyboardInterrupt:
+        print("\nSimulation stopped.")
 
     finally:
         cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--compile", action="store_true")
+    parser = argparse.ArgumentParser(
+        description="Run the UR3 cube-stacking simulation."
+    )
     parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
 
-    if args.compile:
-        compile_scene()
-    else:
-        if not COMPLETE.exists():
-            raise FileNotFoundError(
-                "Run python .\\main.py --compile first."
-            )
-        run_scene(args.seed)
+    if not COMPLETE.exists():
+        raise FileNotFoundError(
+            "Compiled model not found. "
+            "Run python .\\compile_scene.py first."
+        )
+
+    run_scene(args.seed)
