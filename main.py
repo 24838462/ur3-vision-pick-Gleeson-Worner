@@ -8,6 +8,7 @@ import mujoco.viewer
 import numpy as np
 
 from stacking import stack_cubes
+from vision import CubeDetector, CameraFrames
 
 
 ROOT = Path(__file__).resolve().parent
@@ -37,9 +38,12 @@ MOTOR_NAMES = [
 ]
 
 CUBE_COUNT = 3
-CAMERA_FPS = 30
-CAMERA_WIDTH = 640
-CAMERA_HEIGHT = 480
+TABLE_TOP = -0.01
+
+# Lower rendering load for the laptop.
+CAMERA_FPS = 15
+CAMERA_WIDTH = 320
+CAMERA_HEIGHT = 240
 
 
 def get_id(model, object_type, name):
@@ -49,6 +53,87 @@ def get_id(model, object_type, name):
         raise ValueError(f"Missing model element: {name}")
 
     return index
+
+
+def make_rgbd_display(rgb, depth):
+    """Display colour and depth; preserve raw depth in metres."""
+    colour = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
+    # Fixed depth colour scale: 5 cm to 1 metre.
+    near = 0.05
+    far = 1.0
+
+    valid = np.isfinite(depth) & (depth > 0)
+    safe_depth = np.where(valid, depth, far)
+
+    scaled = np.clip(
+        (safe_depth - near) / (far - near),
+        0.0,
+        1.0,
+    )
+
+    # Near surfaces appear warm; distant surfaces appear cool.
+    intensity = ((1.0 - scaled) * 255).astype(np.uint8)
+    depth_colour = cv2.applyColorMap(
+        intensity,
+        cv2.COLORMAP_TURBO,
+    )
+    depth_colour[~valid] = 0
+
+    height, width = depth.shape
+    centre = (width // 2, height // 2)
+
+    for panel in (colour, depth_colour):
+        cv2.drawMarker(
+            panel,
+            centre,
+            (255, 255, 255),
+            cv2.MARKER_CROSS,
+            12,
+            1,
+        )
+
+    centre_depth = depth[height // 2, width // 2]
+
+    if np.isfinite(centre_depth) and centre_depth > 0:
+        reading = f"Centre: {centre_depth:.3f} m"
+    else:
+        reading = "Centre: invalid"
+
+    cv2.putText(
+        colour,
+        "RGB",
+        (10, 22),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.55,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
+
+    cv2.putText(
+        depth_colour,
+        "Depth: near = warm",
+        (10, 22),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
+
+    cv2.putText(
+        depth_colour,
+        reading,
+        (10, height - 12),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
+
+    return np.hstack((colour, depth_colour))
 
 
 def run_scene(seed):
@@ -74,14 +159,24 @@ def run_scene(seed):
         "gripper_fingers_actuator",
     )
 
+    camera_id = get_id(
+        model,
+        mujoco.mjtObj.mjOBJ_CAMERA,
+        "wrist_camera",
+    )
+
+    detector = CubeDetector(
+        CAMERA_WIDTH,
+        CAMERA_HEIGHT,
+        model.cam_fovy[camera_id],
+    )
+
+    camera_frames = CameraFrames(model, JOINT_NAMES)
+
+    next_detection_report = 0.0
+
     home = np.deg2rad(HOME_DEG)
     data.qpos[q_addresses] = home
-
-    # Read the table height from the compiled model.
-    mujoco.mj_forward(model, data)
-
-    # Top surface of the table in the current scene.
-    table_top = -0.01
 
     # Randomise cube positions and orientations.
     rng = np.random.default_rng(seed)
@@ -120,7 +215,7 @@ def run_scene(seed):
         data.qpos[address:address + 3] = [
             xy[0],
             xy[1],
-            table_top + half_size + 0.002,
+            TABLE_TOP + half_size + 0.002,
         ]
 
         data.qpos[address + 3:address + 7] = [
@@ -132,6 +227,7 @@ def run_scene(seed):
 
     mujoco.mj_forward(model, data)
 
+    # Development baseline: stacking still uses simulator state.
     sequence = stack_cubes(
         model,
         data,
@@ -148,19 +244,25 @@ def run_scene(seed):
     options = mujoco.MjvOption()
     options.geomgroup[3] = 0
 
-    window = "Wrist camera"
-    cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(window, CAMERA_WIDTH, CAMERA_HEIGHT)
-
     dt = model.opt.timestep
     steps_per_frame = max(1, round(1 / (CAMERA_FPS * dt)))
     frame_seconds = steps_per_frame * dt
 
+    window = "Wrist camera: RGB and depth"
+
     print("Three movable cubes spawned.")
     print("Stacking starts automatically after settling.")
+    print("RGB on the left; depth on the right.")
     print("Press Q in the camera window to exit.")
 
     try:
+        cv2.namedWindow(window, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(
+            window,
+            CAMERA_WIDTH * 2,
+            CAMERA_HEIGHT,
+        )
+
         with mujoco.Renderer(
             model,
             height=CAMERA_HEIGHT,
@@ -226,6 +328,7 @@ def run_scene(seed):
                             if (
                                 not np.all(np.isfinite(data.qpos))
                                 or not np.all(np.isfinite(data.qvel))
+                                or not np.all(np.isfinite(error_deg))
                                 or np.max(np.abs(error_deg)) > 10
                             ):
                                 frozen = True
@@ -238,18 +341,57 @@ def run_scene(seed):
 
                     viewer.sync()
 
+                    # Render RGB.
+                    renderer.disable_depth_rendering()
                     renderer.update_scene(
                         data,
                         camera="wrist_camera",
                         scene_option=options,
                     )
+                    rgb = renderer.render().copy()
 
-                    rgb = renderer.render()
-
-                    cv2.imshow(
-                        window,
-                        cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR),
+                    # Render aligned depth from the same viewpoint.
+                    renderer.enable_depth_rendering()
+                    renderer.update_scene(
+                        data,
+                        camera="wrist_camera",
+                        scene_option=options,
                     )
+                    depth = renderer.render().copy()
+                    renderer.disable_depth_rendering()
+
+                    annotated_rgb, detections = detector.detect(
+                        rgb,
+                        depth,
+                    )
+
+                    camera_frames.update(data.sensordata)
+
+                    for detection in detections.values():
+                        detection["surface_base"] = (
+                            camera_frames.point_to_base(
+                                detection["surface_camera"]
+                            )
+                        )
+
+                    combined = make_rgbd_display(
+                        annotated_rgb,
+                        depth,
+                    )
+                    cv2.imshow(window, combined)
+
+                    if data.time >= next_detection_report:
+                        next_detection_report = data.time + 1.0
+
+                        for name, detection in detections.items():
+                            point = detection["surface_base"]
+
+                            print(
+                                f"{name} surface in robot base (m): "
+                                f"X={point[0]:.3f}, "
+                                f"Y={point[1]:.3f}, "
+                                f"Z={point[2]:.3f}"
+                            )
 
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
@@ -278,7 +420,7 @@ def run_scene(seed):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run the UR3 cube-stacking simulation."
+        description="Run UR3 stacking with wrist RGB-D display."
     )
     parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
