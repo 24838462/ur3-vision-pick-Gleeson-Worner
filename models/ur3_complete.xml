@@ -210,6 +210,7 @@
   </asset>
 
   <worldbody>
+    <geom name="placement_square" size="0.055 0.055 0.0002" pos="0.3 -0.15 -0.0098" type="box" contype="0" conaffinity="0" group="2" rgba="0.65 0.1 0.85 1"/>
     <geom name="floor" size="2 2 0.1" pos="0 0 -0.75" type="plane" rgba="0.25 0.25 0.28 1"/>
     <geom name="table_top" size="0.55 0.45 0.03" pos="0.25 0 -0.04" type="box" rgba="0.65 0.58 0.45 1"/>
     <light name="scene_light" pos="0.3 -0.3 1.5" type="directional"/>

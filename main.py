@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections import deque
 import argparse
 import time
 
@@ -7,8 +8,14 @@ import mujoco
 import mujoco.viewer
 import numpy as np
 
+from observation import WorkspaceScanner
 from stacking import stack_cubes
-from vision import CubeDetector, CameraFrames
+from vision import (
+    CubeDetector,
+    CameraFrames,
+    estimate_table_cube,
+    estimate_placement_square,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -38,16 +45,25 @@ MOTOR_NAMES = [
 ]
 
 CUBE_COUNT = 3
+CUBE_NAMES = ("red", "green", "blue")
 TABLE_TOP = -0.01
 
-# Lower rendering load for the laptop.
 CAMERA_FPS = 15
 CAMERA_WIDTH = 320
 CAMERA_HEIGHT = 240
 
+STABLE_FRAMES = 10
+
+PLACEMENT_MIN = np.array([0.26, -0.18])
+PLACEMENT_MAX = np.array([0.34, -0.12])
+
 
 def get_id(model, object_type, name):
-    index = mujoco.mj_name2id(model, object_type, name)
+    index = mujoco.mj_name2id(
+        model,
+        object_type,
+        name,
+    )
 
     if index < 0:
         raise ValueError(f"Missing model element: {name}")
@@ -55,25 +71,24 @@ def get_id(model, object_type, name):
     return index
 
 
-def make_rgbd_display(rgb, depth):
-    """Display colour and depth; preserve raw depth in metres."""
-    colour = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-
-    # Fixed depth colour scale: 5 cm to 1 metre.
-    near = 0.05
-    far = 1.0
+def make_rgbd_display(rgb, depth, status):
+    colour = cv2.cvtColor(
+        rgb,
+        cv2.COLOR_RGB2BGR,
+    )
 
     valid = np.isfinite(depth) & (depth > 0)
-    safe_depth = np.where(valid, depth, far)
+    safe_depth = np.where(valid, depth, 1.0)
 
     scaled = np.clip(
-        (safe_depth - near) / (far - near),
+        (safe_depth - 0.05) / 0.95,
         0.0,
         1.0,
     )
+    intensity = (
+        (1.0 - scaled) * 255
+    ).astype(np.uint8)
 
-    # Near surfaces appear warm; distant surfaces appear cool.
-    intensity = ((1.0 - scaled) * 255).astype(np.uint8)
     depth_colour = cv2.applyColorMap(
         intensity,
         cv2.COLORMAP_TURBO,
@@ -93,6 +108,32 @@ def make_rgbd_display(rgb, depth):
             1,
         )
 
+    for panel, label in (
+        (colour, "RGB"),
+        (depth_colour, "Depth: near = warm"),
+    ):
+        cv2.putText(
+            panel,
+            label,
+            (10, 22),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (255, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
+
+    cv2.putText(
+        colour,
+        status,
+        (8, height - 12),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.35,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
+
     centre_depth = depth[height // 2, width // 2]
 
     if np.isfinite(centre_depth) and centre_depth > 0:
@@ -101,33 +142,11 @@ def make_rgbd_display(rgb, depth):
         reading = "Centre: invalid"
 
     cv2.putText(
-        colour,
-        "RGB",
-        (10, 22),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.55,
-        (255, 255, 255),
-        1,
-        cv2.LINE_AA,
-    )
-
-    cv2.putText(
-        depth_colour,
-        "Depth: near = warm",
-        (10, 22),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.45,
-        (255, 255, 255),
-        1,
-        cv2.LINE_AA,
-    )
-
-    cv2.putText(
         depth_colour,
         reading,
         (10, height - 12),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.45,
+        0.4,
         (255, 255, 255),
         1,
         cv2.LINE_AA,
@@ -136,12 +155,158 @@ def make_rgbd_display(rgb, depth):
     return np.hstack((colour, depth_colour))
 
 
+def stable_cube(history):
+    """Record one cube independently of the other objects."""
+    if len(history) < STABLE_FRAMES:
+        return None
+
+    centres = np.array([
+        item["centre_base"] for item in history
+    ])
+    sizes = np.array([
+        item["size"] for item in history
+    ])
+    angles = np.array([
+        item["yaw"] for item in history
+    ])
+
+    if not (
+        np.all(np.isfinite(centres))
+        and np.all(np.isfinite(sizes))
+        and np.all(np.isfinite(angles))
+    ):
+        return None
+
+    centre = np.median(centres, axis=0)
+    size = float(np.median(sizes))
+
+    orientation_mean = np.mean(
+        np.exp(4j * angles)
+    )
+    if abs(orientation_mean) < 0.95:
+        return None
+
+    yaw = float(
+        np.angle(orientation_mean) / 4.0
+    )
+
+    angle_errors = (
+        angles - yaw + np.pi / 4
+    ) % (np.pi / 2) - np.pi / 4
+
+    if np.max(np.linalg.norm(
+        centres - centre,
+        axis=1,
+    )) > 0.002:
+        return None
+
+    if np.ptp(sizes) > 0.002:
+        return None
+
+    if np.max(np.abs(angle_errors)) > np.deg2rad(5):
+        return None
+
+    return {
+        "centre_base": centre.copy(),
+        "size": size,
+        "yaw": yaw,
+    }
+
+
+def stable_placement(history):
+    if len(history) < STABLE_FRAMES:
+        return None
+
+    centres = np.array([
+        item["centre_base"] for item in history
+    ])
+
+    if not np.all(np.isfinite(centres)):
+        return None
+
+    centre = np.median(centres, axis=0)
+
+    if np.max(np.linalg.norm(
+        centres - centre,
+        axis=1,
+    )) > 0.002:
+        return None
+
+    return {"centre_base": centre.copy()}
+
+
+def prepare_targets(records, placement, camera_frames):
+    """Convert recorded measurements to world-frame movement targets."""
+    kinematics = camera_frames.kinematics
+    base_id = camera_frames.base_id
+
+    rotation = (
+        kinematics.xmat[base_id]
+        .reshape(3, 3)
+        .copy()
+    )
+    translation = kinematics.xpos[base_id].copy()
+
+    catalog = []
+
+    for name in CUBE_NAMES:
+        record = records[name]
+
+        direction = rotation @ np.array([
+            np.cos(record["yaw"]),
+            np.sin(record["yaw"]),
+            0.0,
+        ])
+
+        catalog.append({
+            "name": name,
+            "size": record["size"],
+            "centre_base": record["centre_base"].copy(),
+            "yaw": record["yaw"],
+            "centre_world": (
+                rotation @ record["centre_base"]
+                + translation
+            ),
+            "yaw_world": float(
+                np.arctan2(
+                    direction[1],
+                    direction[0],
+                )
+            ),
+        })
+
+    catalog.sort(
+        key=lambda cube: cube["size"],
+        reverse=True,
+    )
+
+    for larger, smaller in zip(catalog, catalog[1:]):
+        if larger["size"] - smaller["size"] < 0.003:
+            raise RuntimeError(
+                "Measured cube sizes are too close "
+                "to determine a reliable stacking order."
+            )
+
+    placement_world = (
+        rotation @ placement["centre_base"]
+        + translation
+    )
+
+    return catalog, placement_world[:2].copy()
+
+
 def run_scene(seed):
-    model = mujoco.MjModel.from_xml_path(str(COMPLETE))
+    model = mujoco.MjModel.from_xml_path(
+        str(COMPLETE)
+    )
     data = mujoco.MjData(model)
 
     joint_ids = np.array([
-        get_id(model, mujoco.mjtObj.mjOBJ_JOINT, name)
+        get_id(
+            model,
+            mujoco.mjtObj.mjOBJ_JOINT,
+            name,
+        )
         for name in JOINT_NAMES
     ])
 
@@ -149,7 +314,11 @@ def run_scene(seed):
     v_addresses = model.jnt_dofadr[joint_ids]
 
     motor_ids = np.array([
-        get_id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, name)
+        get_id(
+            model,
+            mujoco.mjtObj.mjOBJ_ACTUATOR,
+            name,
+        )
         for name in MOTOR_NAMES
     ])
 
@@ -158,11 +327,15 @@ def run_scene(seed):
         mujoco.mjtObj.mjOBJ_ACTUATOR,
         "gripper_fingers_actuator",
     )
-
     camera_id = get_id(
         model,
         mujoco.mjtObj.mjOBJ_CAMERA,
         "wrist_camera",
+    )
+    placement_id = get_id(
+        model,
+        mujoco.mjtObj.mjOBJ_GEOM,
+        "placement_square",
     )
 
     detector = CubeDetector(
@@ -170,28 +343,33 @@ def run_scene(seed):
         CAMERA_HEIGHT,
         model.cam_fovy[camera_id],
     )
-
-    camera_frames = CameraFrames(model, JOINT_NAMES)
-
-    next_detection_report = 0.0
+    camera_frames = CameraFrames(
+        model,
+        JOINT_NAMES,
+    )
 
     home = np.deg2rad(HOME_DEG)
     data.qpos[q_addresses] = home
 
-    # Randomise cube positions and orientations.
     rng = np.random.default_rng(seed)
     positions = []
 
+    # Simulator setup only. These values are not pickup targets.
     for index in range(CUBE_COUNT):
-        cube_geom = get_id(
+        geom_id = get_id(
             model,
             mujoco.mjtObj.mjOBJ_GEOM,
             f"cube_{index}_geom",
         )
-        half_size = float(model.geom_size[cube_geom, 0])
+        half_size = float(
+            model.geom_size[geom_id, 0]
+        )
 
         for _ in range(1000):
-            xy = rng.uniform([0.22, 0.08], [0.38, 0.24])
+            xy = rng.uniform(
+                [0.22, 0.08],
+                [0.38, 0.24],
+            )
 
             if all(
                 np.linalg.norm(xy - previous) > 0.085
@@ -199,17 +377,18 @@ def run_scene(seed):
             ):
                 break
         else:
-            raise RuntimeError("Could not space the cubes apart.")
+            raise RuntimeError(
+                "Could not space the cubes apart."
+            )
 
         positions.append(xy)
 
-        cube_joint = get_id(
+        joint_id = get_id(
             model,
             mujoco.mjtObj.mjOBJ_JOINT,
             f"cube_{index}_joint",
         )
-
-        address = model.jnt_qposadr[cube_joint]
+        address = model.jnt_qposadr[joint_id]
         yaw = rng.uniform(-np.pi, np.pi)
 
         data.qpos[address:address + 3] = [
@@ -217,7 +396,6 @@ def run_scene(seed):
             xy[1],
             TABLE_TOP + half_size + 0.002,
         ]
-
         data.qpos[address + 3:address + 7] = [
             np.cos(yaw / 2),
             0,
@@ -225,38 +403,70 @@ def run_scene(seed):
             np.sin(yaw / 2),
         ]
 
+    # Simulator setup only. The task must discover this with vision.
+    spawned_placement_xy = rng.uniform(
+        PLACEMENT_MIN,
+        PLACEMENT_MAX,
+    )
+    model.geom_pos[placement_id, :2] = (
+        spawned_placement_xy
+    )
+    model.geom_pos[placement_id, 2] = (
+        TABLE_TOP + 0.0002
+    )
+
     mujoco.mj_forward(model, data)
 
-    # Development baseline: stacking still uses simulator state.
-    sequence = stack_cubes(
+    scanner = WorkspaceScanner(
         model,
         data,
         q_addresses,
         v_addresses,
-        home,
+        camera_id,
     )
+    search_sequence = scanner.run()
+    stack_sequence = None
+
+    histories = {
+        name: deque(maxlen=STABLE_FRAMES)
+        for name in CUBE_NAMES
+    }
+    placement_history = deque(
+        maxlen=STABLE_FRAMES
+    )
+
+    records = {}
+    placement_record = None
 
     desired_q = home.copy()
     desired_qd = np.zeros(6)
     gripper_command = 0.0
+
     frozen = False
+    next_report = 0.0
 
     options = mujoco.MjvOption()
     options.geomgroup[3] = 0
 
     dt = model.opt.timestep
-    steps_per_frame = max(1, round(1 / (CAMERA_FPS * dt)))
+    steps_per_frame = max(
+        1,
+        round(1 / (CAMERA_FPS * dt)),
+    )
     frame_seconds = steps_per_frame * dt
 
     window = "Wrist camera: RGB and depth"
 
-    print("Three movable cubes spawned.")
-    print("Stacking starts automatically after settling.")
-    print("RGB on the left; depth on the right.")
+    print("Three cubes and a purple marker spawned.")
+    print("Searching the workspace using the wrist camera.")
+    print("Objects can be recorded from different views.")
     print("Press Q in the camera window to exit.")
 
     try:
-        cv2.namedWindow(window, cv2.WINDOW_NORMAL)
+        cv2.namedWindow(
+            window,
+            cv2.WINDOW_NORMAL,
+        )
         cv2.resizeWindow(
             window,
             CAMERA_WIDTH * 2,
@@ -282,23 +492,44 @@ def run_scene(seed):
 
                     if not frozen:
                         for _ in range(steps_per_frame):
-                            try:
-                                (
-                                    desired_q,
-                                    desired_qd,
-                                    gripper_command,
-                                ) = next(sequence)
+                            active_sequence = (
+                                stack_sequence
+                                if stack_sequence is not None
+                                else search_sequence
+                            )
 
-                            except StopIteration:
-                                frozen = True
-                                print("Stacking sequence finished.")
-                                break
+                            if active_sequence is not None:
+                                try:
+                                    (
+                                        desired_q,
+                                        desired_qd,
+                                        gripper_command,
+                                    ) = next(active_sequence)
 
-                            except (RuntimeError, ValueError) as error:
-                                frozen = True
-                                print("STOPPED:", error)
-                                break
+                                except StopIteration:
+                                    desired_qd = np.zeros(6)
 
+                                    if stack_sequence is not None:
+                                        frozen = True
+                                        print("Stacking finished.")
+                                        break
+
+                                    search_sequence = None
+
+                                except (
+                                    RuntimeError,
+                                    ValueError,
+                                ) as error:
+                                    frozen = True
+                                    print("STOPPED:", error)
+                                    break
+
+                            else:
+                                desired_qd = np.zeros(6)
+                                gripper_command = 0.0
+
+                            # Development controller.
+                            # Observer-based feedback is still to come.
                             torque = (
                                 data.qfrc_bias[v_addresses]
                                 + KP * (
@@ -316,13 +547,13 @@ def run_scene(seed):
                                 model.actuator_ctrlrange[motor_ids, 0],
                                 model.actuator_ctrlrange[motor_ids, 1],
                             )
-
                             data.ctrl[gripper_id] = gripper_command
 
                             mujoco.mj_step(model, data)
 
                             error_deg = np.rad2deg(
-                                desired_q - data.qpos[q_addresses]
+                                desired_q
+                                - data.qpos[q_addresses]
                             )
 
                             if (
@@ -333,15 +564,13 @@ def run_scene(seed):
                             ):
                                 frozen = True
                                 print(
-                                    "Physics paused: arm tracking "
-                                    "error exceeded 10 degrees "
-                                    "or state became invalid."
+                                    "Physics paused: tracking error "
+                                    "or invalid state."
                                 )
                                 break
 
                     viewer.sync()
 
-                    # Render RGB.
                     renderer.disable_depth_rendering()
                     renderer.update_scene(
                         data,
@@ -350,7 +579,6 @@ def run_scene(seed):
                     )
                     rgb = renderer.render().copy()
 
-                    # Render aligned depth from the same viewpoint.
                     renderer.enable_depth_rendering()
                     renderer.update_scene(
                         data,
@@ -360,38 +588,204 @@ def run_scene(seed):
                     depth = renderer.render().copy()
                     renderer.disable_depth_rendering()
 
-                    annotated_rgb, detections = detector.detect(
-                        rgb,
-                        depth,
+                    annotated_rgb, detections = (
+                        detector.detect(rgb, depth)
+                    )
+                    camera_frames.update(
+                        data.sensordata
                     )
 
-                    camera_frames.update(data.sensordata)
+                    if stack_sequence is None and not frozen:
+                        if scanner.collecting and data.time >= 2.0:
+                            for name in CUBE_NAMES:
+                                if name in records:
+                                    continue
 
-                    for detection in detections.values():
-                        detection["surface_base"] = (
-                            camera_frames.point_to_base(
-                                detection["surface_camera"]
-                            )
+                                measurement = None
+
+                                if name in detections:
+                                    measurement = estimate_table_cube(
+                                        detections[name],
+                                        camera_frames,
+                                        TABLE_TOP,
+                                    )
+
+                                if measurement is None:
+                                    histories[name].clear()
+                                    continue
+
+                                histories[name].append({
+                                    "centre_base": (
+                                        measurement["centre_base"].copy()
+                                    ),
+                                    "size": float(measurement["size"]),
+                                    "yaw": float(measurement["yaw"]),
+                                })
+
+                                record = stable_cube(
+                                    histories[name]
+                                )
+
+                                if record is not None:
+                                    records[name] = record
+                                    print(
+                                        f"Recorded {name}: "
+                                        f"{record['size'] * 1000:.1f} mm, "
+                                        f"centre="
+                                        f"{np.round(record['centre_base'], 3)}"
+                                    )
+
+                            if placement_record is None:
+                                measurement = None
+
+                                if "purple" in detections:
+                                    measurement = (
+                                        estimate_placement_square(
+                                            detections["purple"],
+                                            camera_frames,
+                                            TABLE_TOP,
+                                        )
+                                    )
+
+                                if measurement is None:
+                                    placement_history.clear()
+
+                                else:
+                                    placement_history.append({
+                                        "centre_base": (
+                                            measurement["centre_base"].copy()
+                                        )
+                                    })
+
+                                    placement_record = stable_placement(
+                                        placement_history
+                                    )
+
+                                    if placement_record is not None:
+                                        print(
+                                            "Recorded purple centre "
+                                            "from camera:",
+                                            np.round(
+                                                placement_record[
+                                                    "centre_base"
+                                                ],
+                                                3,
+                                            ),
+                                        )
+
+                        else:
+                            # Do not combine samples across moving views.
+                            for history in histories.values():
+                                history.clear()
+                            placement_history.clear()
+
+                        ready = (
+                            len(records) == CUBE_COUNT
+                            and placement_record is not None
                         )
 
-                    combined = make_rgbd_display(
-                        annotated_rgb,
-                        depth,
-                    )
-                    cv2.imshow(window, combined)
+                        if ready and scanner.collecting:
+                            try:
+                                catalog, measured_placement_xy = (
+                                    prepare_targets(
+                                        records,
+                                        placement_record,
+                                        camera_frames,
+                                    )
+                                )
 
-                    if data.time >= next_detection_report:
-                        next_detection_report = data.time + 1.0
+                                print(
+                                    "Picking order: "
+                                    + " -> ".join(
+                                        cube["name"]
+                                        for cube in catalog
+                                    )
+                                )
+                                print(
+                                    "Camera-derived placement XY:",
+                                    np.round(
+                                        measured_placement_xy,
+                                        3,
+                                    ),
+                                )
 
-                        for name, detection in detections.items():
-                            point = detection["surface_base"]
+                                stack_sequence = stack_cubes(
+                                    model,
+                                    data,
+                                    q_addresses,
+                                    v_addresses,
+                                    desired_q.copy(),
+                                    catalog,
+                                    measured_placement_xy,
+                                )
+
+                                search_sequence = None
+                                scanner.collecting = False
+                                scanner.status = "Stacking"
+
+                            except (
+                                RuntimeError,
+                                ValueError,
+                            ) as error:
+                                frozen = True
+                                print("STOPPED:", error)
+
+                        elif search_sequence is None:
+                            missing = [
+                                name
+                                for name in CUBE_NAMES
+                                if name not in records
+                            ]
+
+                            if placement_record is None:
+                                missing.append("purple")
+
+                            frozen = True
+                            print(
+                                "SEARCH INCOMPLETE: "
+                                + ", ".join(missing)
+                                + " not recorded."
+                            )
+                            print(
+                                "Holding for inspection. "
+                                "Search views or detection checks "
+                                "need adjustment."
+                            )
+
+                        if data.time >= next_report:
+                            next_report = data.time + 2.0
+                            known = list(sorted(records))
+
+                            if placement_record is not None:
+                                known.append("purple")
 
                             print(
-                                f"{name} surface in robot base (m): "
-                                f"X={point[0]:.3f}, "
-                                f"Y={point[1]:.3f}, "
-                                f"Z={point[2]:.3f}"
+                                f"{scanner.status}; recorded: "
+                                + (
+                                    ", ".join(known)
+                                    if known
+                                    else "none"
+                                )
                             )
+
+                    status = (
+                        "Paused"
+                        if frozen
+                        else (
+                            "Stacking"
+                            if stack_sequence is not None
+                            else scanner.status
+                        )
+                    )
+
+                    cv2.imshow(
+                        window,
+                        make_rgbd_display(
+                            annotated_rgb,
+                            depth,
+                            status,
+                        ),
+                    )
 
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
@@ -420,14 +814,17 @@ def run_scene(seed):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run UR3 stacking with wrist RGB-D display."
+        description="Search, measure and stack using wrist RGB-D."
     )
-    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+    )
     args = parser.parse_args()
 
     if not COMPLETE.exists():
         raise FileNotFoundError(
-            "Compiled model not found. "
             "Run python .\\compile_scene.py first."
         )
 

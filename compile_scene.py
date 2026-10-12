@@ -1,4 +1,3 @@
-# run this script to generate the combined robot, gripper and scene XML when the original XML is updated.
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -7,11 +6,15 @@ import mujoco
 
 ROOT = Path(__file__).resolve().parent
 MODELS = ROOT / "models"
+
 SOURCE = MODELS / "ur3_pick_gripper_scene.xml"
 COMPLETE = MODELS / "ur3_complete.xml"
 
+TABLE_TOP = -0.01
+
 # Full cube widths: 3, 4 and 5 cm.
 HALF_SIZES = [0.015, 0.020, 0.025]
+
 COLOURS = [
     "0.9 0.1 0.1 1",
     "0.1 0.8 0.2 1",
@@ -30,6 +33,7 @@ def expand_includes(path):
         included = expand_includes(
             path.parent / element.get("file")
         )
+
         index = list(root).index(element)
         root.remove(element)
 
@@ -40,15 +44,21 @@ def expand_includes(path):
 
 
 def compile_scene():
-    """Build and validate the combined robot, gripper and scene XML."""
+    """Build the combined robot, gripper, camera and scene XML."""
     root = expand_includes(SOURCE)
     root.set("model", "ur3_complete")
 
+    # Remove previous demonstration cubes and placement marker.
     for world in root.findall("worldbody"):
         for body in list(world.findall("body")):
             name = body.get("name", "")
+
             if name == "target_cube" or name.startswith("cube_"):
                 world.remove(body)
+
+        for geom in list(world.findall("geom")):
+            if geom.get("name") == "placement_square":
+                world.remove(geom)
 
     world = root.find("worldbody")
     if world is None:
@@ -61,7 +71,7 @@ def compile_scene():
             name=f"cube_{index}",
             pos=(
                 f"{0.25 + index * 0.06} 0.15 "
-                f"{-0.01 + half_size + 0.002}"
+                f"{TABLE_TOP + half_size + 0.002}"
             ),
         )
 
@@ -84,6 +94,21 @@ def compile_scene():
             conaffinity="1",
         )
 
+    # Thin visual marker: 11 cm square.
+    # Non-colliding so the physical table remains the support surface.
+    ET.SubElement(
+        world,
+        "geom",
+        name="placement_square",
+        type="box",
+        pos=f"0.30 -0.15 {TABLE_TOP + 0.0002}",
+        size="0.055 0.055 0.0002",
+        rgba="0.65 0.1 0.85 1",
+        group="2",
+        contype="0",
+        conaffinity="0",
+    )
+
     ET.indent(root, space="  ")
     ET.ElementTree(root).write(
         COMPLETE,
@@ -91,11 +116,13 @@ def compile_scene():
         xml_declaration=True,
     )
 
+    # Validate model loading and save canonical combined XML.
+    # This does not run the simulation.
     model = mujoco.MjModel.from_xml_path(str(COMPLETE))
     mujoco.mj_saveLastXML(str(COMPLETE), model)
 
     print("Created:", COMPLETE)
-    print("Launch with: python .\\main.py")
+    print("Launch with: python .\\main.py --seed 7")
 
 
 if __name__ == "__main__":
