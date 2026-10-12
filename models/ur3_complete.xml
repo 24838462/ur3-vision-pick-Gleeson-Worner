@@ -33,6 +33,15 @@
         </default>
       </default>
     </default>
+    <default class="wrist_d435i_d435i">
+      <material specular="0" shininess="0.25"/>
+      <default class="wrist_d435i_visual">
+        <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+      </default>
+      <default class="wrist_d435i_collision">
+        <geom type="mesh" group="3"/>
+      </default>
+    </default>
   </default>
 
   <asset>
@@ -40,6 +49,13 @@
     <material name="gripper_silicone" rgba="0.1882 0.1882 0.1882 1"/>
     <material name="gripper_gray" rgba="0.4627 0.4627 0.4627 1"/>
     <material name="gripper_black" rgba="0.149 0.149 0.149 1"/>
+    <material name="wrist_d435i_Black_Acrylic" class="wrist_d435i_d435i" rgba="0.07036 0.07036 0.07036 1"/>
+    <material name="wrist_d435i_Cameras_Gray" class="wrist_d435i_d435i" rgba="0.296138 0.296138 0.296138 1"/>
+    <material name="wrist_d435i_IR_Emitter_Lens" class="wrist_d435i_d435i" rgba="0.28744 0.665387 0.327778 1"/>
+    <material name="wrist_d435i_IR_Lens" class="wrist_d435i_d435i" rgba="0.035601 0.035601 0.035601 1"/>
+    <material name="wrist_d435i_IR_Rim" class="wrist_d435i_d435i" rgba="0.799102 0.806952 0.799103 1"/>
+    <material name="wrist_d435i_Metal_Casing" class="wrist_d435i_d435i"/>
+    <material name="wrist_d435i_RGB_Pupil" class="wrist_d435i_d435i" rgba="0.08714 0.002866 0.009346 1"/>
     <mesh name="base" content_type="model/stl" file="ur3_meshes/collision/base.stl"/>
     <mesh name="shoulder" content_type="model/stl" file="ur3_meshes/collision/shoulder.stl"/>
     <mesh name="upperarm" content_type="model/stl" file="ur3_meshes/collision/upperarm.stl"/>
@@ -182,6 +198,15 @@
     <mesh name="gripper_pad" class="gripper_2f85" content_type="model/stl" file="robotiq_2f85/assets/pad.stl"/>
     <mesh name="gripper_silicone_pad" class="gripper_2f85" content_type="model/stl" file="robotiq_2f85/assets/silicone_pad.stl"/>
     <mesh name="gripper_spring_link" class="gripper_2f85" content_type="model/stl" file="robotiq_2f85/assets/spring_link.stl"/>
+    <mesh name="wrist_d435i_d435i_0" content_type="model/obj" file="realsense_d435i/assets/d435i_0.obj"/>
+    <mesh name="wrist_d435i_d435i_1" content_type="model/obj" file="realsense_d435i/assets/d435i_1.obj"/>
+    <mesh name="wrist_d435i_d435i_2" content_type="model/obj" file="realsense_d435i/assets/d435i_2.obj"/>
+    <mesh name="wrist_d435i_d435i_3" content_type="model/obj" file="realsense_d435i/assets/d435i_3.obj"/>
+    <mesh name="wrist_d435i_d435i_4" content_type="model/obj" file="realsense_d435i/assets/d435i_4.obj"/>
+    <mesh name="wrist_d435i_d435i_5" content_type="model/obj" file="realsense_d435i/assets/d435i_5.obj"/>
+    <mesh name="wrist_d435i_d435i_6" content_type="model/obj" file="realsense_d435i/assets/d435i_6.obj"/>
+    <mesh name="wrist_d435i_d435i_7" content_type="model/obj" file="realsense_d435i/assets/d435i_7.obj"/>
+    <mesh name="wrist_d435i_d435i_8" content_type="model/obj" file="realsense_d435i/assets/d435i_8.obj"/>
   </asset>
 
   <worldbody>
@@ -346,7 +371,6 @@
                     <body name="ft_frame" quat="0 1 0 0"/>
                     <body name="flange" quat="0.5 -0.5 -0.5 -0.5">
                       <body name="tool0" quat="0.5 0.5 0.5 0.5">
-                        <camera name="wrist_camera" quat="0 1 0 0" pos="0 0 0.085" fovy="60"/>
                         <body name="gripper_base_mount" childclass="gripper_2f85" pos="0 0 0.007">
                           <geom class="gripper_visual" quat="1 0 0 0" material="gripper_black" mesh="gripper_base_mount"/>
                           <geom class="gripper_collision" quat="1 0 0 0" mesh="gripper_base_mount"/>
@@ -421,6 +445,22 @@
                                 </body>
                               </body>
                             </body>
+                          </body>
+                        </body>
+                        <body name="wrist_camera_mount" pos="0 0.065 0.04">
+                          <geom name="wrist_camera_bracket" size="0.008 0.0325 0.003" pos="0 -0.0325 -0.028" type="box" group="2" rgba="0.35 0.35 0.4 1" mass="0.015"/>
+                          <body name="wrist_d435i_d435i" childclass="wrist_d435i_d435i">
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Lens" mesh="wrist_d435i_d435i_0"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Emitter_Lens" mesh="wrist_d435i_d435i_1"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Rim" mesh="wrist_d435i_d435i_2"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Lens" mesh="wrist_d435i_d435i_3"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_Cameras_Gray" mesh="wrist_d435i_d435i_4"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_Black_Acrylic" mesh="wrist_d435i_d435i_5"/>
+                            <geom class="wrist_d435i_visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="wrist_d435i_Black_Acrylic" mesh="wrist_d435i_d435i_6"/>
+                            <geom class="wrist_d435i_visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="wrist_d435i_RGB_Pupil" mesh="wrist_d435i_d435i_7"/>
+                            <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0.072" material="wrist_d435i_Metal_Casing" mesh="wrist_d435i_d435i_8"/>
+                            <geom class="wrist_d435i_collision" size="0.0133328 0.0316322" pos="7.48125e-05 0.00018813 -0.0124624" quat="0.029024 0.708312 0.0275527 0.704764" type="capsule" mass="0"/>
+                            <camera name="wrist_camera" quat="0 1 0 0" pos="0.0325 1e-06 -0.0033" fovy="60"/>
                           </body>
                         </body>
                       </body>
