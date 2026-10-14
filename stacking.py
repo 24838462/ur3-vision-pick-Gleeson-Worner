@@ -37,18 +37,64 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
 
     def settle():
         stable_steps = 0
-        required_steps = max(1, int(np.ceil(0.15 / dt)))
+        required_steps = max(
+            1, int(np.ceil(0.15 / dt))
+        )
+
         for _ in range(int(np.ceil(3.0 / dt))):
-            yield (goal_q.copy(), np.zeros(6), gripper_command)
-            error = np.max(np.abs(goal_q - data.qpos[q_addresses]))
-            speed = np.max(np.abs(data.qvel[v_addresses]))
+            yield (
+                goal_q.copy(),
+                np.zeros(6),
+                gripper_command,
+            )
+
+            position_error = (
+                goal_q - data.qpos[q_addresses]
+            )
+            joint_velocity = data.qvel[v_addresses]
+
+            error = np.max(np.abs(position_error))
+            speed = np.max(np.abs(joint_velocity))
+
             if error < np.deg2rad(1) and speed < 0.05:
                 stable_steps += 1
             else:
                 stable_steps = 0
+
             if stable_steps >= required_steps:
                 return
-        raise RuntimeError('Arm did not settle at the requested pose.')
+
+        position_error_deg = np.rad2deg(
+            goal_q - data.qpos[q_addresses]
+        )
+
+        print(
+            "Requested angles (deg):",
+            np.round(np.rad2deg(goal_q), 3),
+        )
+        print(
+            "Actual angles (deg):",
+            np.round(
+                np.rad2deg(data.qpos[q_addresses]),
+                3,
+            ),
+        )
+        print(
+            "Settling errors (deg):",
+            np.round(position_error_deg, 3),
+        )
+        print(
+            "Joint velocities (rad/s):",
+            np.round(data.qvel[v_addresses], 4),
+        )
+
+        raise RuntimeError(
+            "Arm did not settle: "
+            f"maximum error="
+            f"{np.max(np.abs(position_error_deg)):.3f} deg, "
+            f"maximum speed="
+            f"{np.max(np.abs(data.qvel[v_addresses])):.4f} rad/s."
+        )
 
     def solve_ik(position, rotation, initial_q=None):
         position = np.asarray(position, dtype=float)

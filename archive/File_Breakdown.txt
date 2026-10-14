@@ -1,0 +1,18 @@
+main.py	
+    Reads arguments such as --seed 7, checks the compiled model exists, and starts the simulation.
+simulation.py	
+    Loads the scene, randomises cube and purple positions, runs physics and joint control, displays RGB/depth images, processes measurements, and saves PBVS and observer logs.
+robot_utils.py	
+    Provides shared helpers for finding model elements, reading joint limits and solving IK.
+observation.py
+    Runs the zigzag camera search and holds observation poses while vision collects stable measurements.
+vision.py	
+    Detects colours, converts RGB-D measurements into robot-base coordinates, measures cube sizes and surface poses, and checks measurement stability.
+pbvs.py	
+    Calculates camera-based movement corrections for pickup approach/descent, transport and placement alignment. Applies speed limits and checks convergence.
+stacking.py
+    Runs the largest-to-smallest stacking sequence, controls the gripper and trajectories, smooths placement commands, and retries pickup approach after measurement loss.
+estimation.py
+    Adds simulated encoder noise, estimates joint position and velocity, and logs estimation errors. Currently monitors performance; its estimates do not yet drive control.
+compile_scene.py
+    Builds models/ur3_complete.xml from the source models and scene. Run it after changing source XML, geometry, mounts or scene definitions.

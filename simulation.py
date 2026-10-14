@@ -11,6 +11,7 @@ from robot_utils import JOINT_NAMES, MOTOR_NAMES, get_id
 from observation import WorkspaceScanner
 from stacking import stack_cubes
 from estimation import ObserverMonitor
+from torque_controller import ComputedTorqueController
 from vision import (
     CubeDetector,
     CameraFrames,
@@ -27,6 +28,7 @@ COMPLETE = ROOT / 'models' / 'ur3_complete.xml'
 HOME_DEG = [0, -90, 90, -90, -90, 0]
 KP = np.array([80, 100, 80, 3, 3, 2], dtype=float)
 KD = np.array([20, 25, 20, 0.15, 0.15, 0.08], dtype=float)
+USE_LQR_TORQUE = True
 CUBE_NAMES = ('red', 'green', 'blue')
 TABLE_TOP = -0.01
 CAMERA_WIDTH = 320
@@ -110,6 +112,14 @@ def render_rgbd(renderer, data, options):
 
 def run_scene(seed):
     model, data, q_addresses, v_addresses, motors, gripper, camera, home = create_scene(seed)
+    arm_controller = None
+    if USE_LQR_TORQUE:
+        arm_controller = ComputedTorqueController(
+            model,
+            q_addresses,
+            v_addresses,
+            motors,
+        )
     detector = CubeDetector(CAMERA_WIDTH, CAMERA_HEIGHT, model.cam_fovy[camera])
     frames = CameraFrames(model, JOINT_NAMES)
     frames.update(data.sensordata)
@@ -176,48 +186,110 @@ def run_scene(seed):
                         wall_start = time.perf_counter()
                         if not frozen:
                             for _ in range(steps_per_frame):
-                                active = task if task is not None else search
+                                active = (
+                                    task
+                                    if task is not None
+                                    else search
+                                )
+
                                 if active is not None:
                                     try:
                                         desired_q, desired_qd, grip = next(active)
+
                                     except StopIteration:
                                         desired_qd = np.zeros(6)
+
                                         if task is not None:
                                             frozen = True
                                             break
+
                                         search = None
+
                                     except (
                                         RuntimeError,
                                         ValueError,
                                         np.linalg.LinAlgError,
                                     ) as error:
                                         frozen = True
-                                        print('STOPPED:', error)
+                                        print("STOPPED:", error)
                                         break
-                                # Development controller: replace simulator state with estimates later.
-                                torque = data.qfrc_bias[v_addresses] + KP * (desired_q - data.qpos[q_addresses]) + KD * (desired_qd - data.qvel[v_addresses])
-                                data.ctrl[motors] = np.clip(
-                                    torque,
-                                    model.actuator_ctrlrange[motors, 0],
-                                    model.actuator_ctrlrange[motors, 1],
-                                )
+
+                                # Arm control: LQR computed torque or
+                                # the existing PD controller.
+                                try:
+                                    if arm_controller is not None:
+                                        data.ctrl[motors] = (
+                                            arm_controller.commands(
+                                                data,
+                                                desired_q,
+                                                desired_qd,
+                                            )
+                                        )
+
+                                    else:
+                                        torque = (
+                                            data.qfrc_bias[v_addresses]
+                                            + KP * (
+                                                desired_q
+                                                - data.qpos[q_addresses]
+                                            )
+                                            + KD * (
+                                                desired_qd
+                                                - data.qvel[v_addresses]
+                                            )
+                                        )
+
+                                        data.ctrl[motors] = np.clip(
+                                            torque,
+                                            model.actuator_ctrlrange[
+                                                motors, 0
+                                            ],
+                                            model.actuator_ctrlrange[
+                                                motors, 1
+                                            ],
+                                        )
+
+                                except (
+                                    RuntimeError,
+                                    ValueError,
+                                    np.linalg.LinAlgError,
+                                ) as error:
+                                    frozen = True
+                                    print("STOPPED: arm controller:", error)
+                                    break
+
+                                # Gripper control and physics.
                                 data.ctrl[gripper] = grip
                                 mujoco.mj_step(model, data)
-                                error_deg = np.rad2deg(desired_q - data.qpos[q_addresses])
+
+                                error_deg = np.rad2deg(
+                                    desired_q
+                                    - data.qpos[q_addresses]
+                                )
+
                                 if (
                                     not np.all(np.isfinite(data.qpos))
                                     or not np.all(np.isfinite(data.qvel))
-                                    or (not np.all(np.isfinite(error_deg)))
-                                    or (np.max(np.abs(error_deg)) > 10)
+                                    or not np.all(np.isfinite(error_deg))
+                                    or np.max(np.abs(error_deg)) > 10
                                 ):
                                     frozen = True
-                                    print('STOPPED: tracking error or invalid state.')
+                                    print(
+                                        "STOPPED: tracking error "
+                                        "or invalid state."
+                                    )
                                     break
+
+                        # Refresh sensors at the current state.
                         mujoco.mj_forward(model, data)
 
+                        # Observer evaluation remains separate
+                        # from the controller for this first test.
                         observer.sample(
                             data.time,
-                            data.sensordata[frames.encoder_addresses],
+                            data.sensordata[
+                                frames.encoder_addresses
+                            ],
                             data.qpos[q_addresses],
                             data.qvel[v_addresses],
                         )
