@@ -11,6 +11,10 @@ TRAVEL_Z = 0.25
 INWARD_RADIUS = 0.27
 LIFT_CLEARANCE = 0.04
 MAX_JOINT_SPEED_DEG = 25.0
+TRANSPORT_JOINT_SPEED_DEG = 15.0
+PLACEMENT_JOINT_ACCELERATION = 0.25  # rad/s squared
+PLACEMENT_COMMAND_TIME_CONSTANT = 0.15  # seconds
+PICK_APPROACH_ATTEMPTS = 3
 VERTICAL_SPEED = 0.05
 PLACEMENT_SPEED = 0.015
 COLOUR_TO_INDEX = {'red': 0, 'green': 1, 'blue': 2}
@@ -65,14 +69,14 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             return solution
         raise RuntimeError(f'IK failed for position {np.round(position, 3)} metres.')
 
-    def move_to(position, rotation, label=None):
+    def move_to(position, rotation, label=None, speed_deg=MAX_JOINT_SPEED_DEG):
         nonlocal goal_q
         if label:
             print(label)
         start_q = data.qpos[q_addresses].copy()
         goal_q = solve_ik(position, rotation)
         largest_change_deg = np.max(np.abs(np.rad2deg(goal_q - start_q)))
-        duration = max(2.0, 1.875 * largest_change_deg / MAX_JOINT_SPEED_DEG)
+        duration = max(2.0, 1.875 * largest_change_deg / speed_deg)
         times = np.arange(int(np.ceil(duration / dt)) + 1) * dt
         trajectory = jtraj(start_q, goal_q, times)
         for q, qd in zip(trajectory.q, trajectory.qd):
@@ -121,7 +125,7 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             yield (goal_q.copy(), np.zeros(6), gripper_command)
         yield from hold(1.0)
 
-    def refresh_target(name):
+    def refresh_target(name, excluded_views=()):
         nonlocal goal_q
         print(f'{name}: use recorded position to reacquire target.')
         recorded = next((cube for cube in catalog if cube['name'] == name))
@@ -141,6 +145,7 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             [inward_xy[0] + 0.04 * tangent[0], inward_xy[1] + 0.04 * tangent[1], 0.35],
             [inward_xy[0] - 0.04 * tangent[0], inward_xy[1] - 0.04 * tangent[1], 0.35],
             [xy[0], xy[1], 0.3],
+            [inward_xy[0], inward_xy[1], 0.3],
         ]
         feedback.update(mode='measure', name=name, collecting=False, result=None, servo=None)
         feedback['history'].clear()
@@ -148,7 +153,7 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
         try:
             for position in viewpoints:
                 key = tuple(np.round(position, 4))
-                if key in attempted:
+                if key in attempted or key in excluded_views:
                     continue
                 attempted.add(key)
                 feedback['collecting'] = False
@@ -168,6 +173,7 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
                         feedback['collecting'] = observer.collecting
                         yield (q, qd, command)
                         if observer.collecting and feedback['result'] is not None:
+                            feedback['pickup_view'] = key
                             return dict(feedback['result'])
                 except RuntimeError as error:
                     if str(error).startswith('Camera IK failed'):
@@ -186,18 +192,35 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
         feedback.update(mode='pbvs', name=target['name'], servo=servo, collecting=False)
         print(f"PBVS {phase}: tracking {target['name']}.")
         start_time = data.time
-        goal_q = data.qpos[q_addresses].copy()
+        # Retain the last trajectory setpoint at a transport handover.
+        # Starting the velocity ramp from the moving arm avoids a sudden stop.
+        if phase != 'place_transport':
+            goal_q = data.qpos[q_addresses].copy()
+        smoothed_rates = data.qvel[v_addresses].copy() if servo.placing else np.zeros(6)
+        smoothing_alpha = 1.0 - np.exp(-dt / PLACEMENT_COMMAND_TIME_CONSTANT)
         try:
-            while data.time - start_time < 45.0:
+            while data.time - start_time < (90.0 if servo.placing else 45.0):
                 if servo.last_seen is None:
                     if data.time - start_time > 1.0:
                         raise RuntimeError(f'PBVS {phase}: target not acquired.')
                 elif data.time - servo.last_seen > LOST_TIMEOUT:
-                    raise RuntimeError(f'PBVS {phase}: target measurement lost; motion paused.')
-                if servo.converged:
+                    raise RuntimeError(f'PBVS {phase}: target measurement lost; motion paused. {servo.rejection_reason or "No recent valid frame."}')
+                if servo.converged and (not servo.placing or np.max(np.abs(smoothed_rates)) < 0.002):
                     print(f'PBVS {phase} converged: translation={servo.translation_error * 1000:.1f} mm, rotation={np.rad2deg(servo.rotation_error):.1f} deg')
                     return servo
                 rates = servo.command.copy() if servo.valid else np.zeros(6)
+                if servo.placing:
+                    if not servo.valid:
+                        # Measurement loss must stop motion, even during a ramp.
+                        smoothed_rates[:] = 0.0
+                    else:
+                        change = smoothing_alpha * (rates - smoothed_rates)
+                        smoothed_rates += np.clip(
+                            change,
+                            -PLACEMENT_JOINT_ACCELERATION * dt,
+                            PLACEMENT_JOINT_ACCELERATION * dt,
+                        )
+                    rates = smoothed_rates.copy()
                 goal_q = goal_q + rates * dt
                 if np.any(goal_q <= lower + 0.01) or np.any(goal_q >= upper - 0.01):
                     raise RuntimeError('PBVS: joint-limit margin reached.')
@@ -220,8 +243,6 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             (rb.T @ (destination - kin.xpos[frames.base_id]))[2]
         )
         transport_target = dict(support)
-        if support["name"] == "purple":
-            transport_target["placement_rotation_base"] = rb.T @ rotation
         servo = PoseServo(
             model, frames, v_addresses, transport_target,
             phase="place_transport", held_size=size,
@@ -243,6 +264,7 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             movement = move_to(
                 destination, rotation,
                 f"{name}: transport towards recorded placement region.",
+                speed_deg=TRANSPORT_JOINT_SPEED_DEG,
             )
             for q, qd, command in movement:
                 goal_q = q.copy()
@@ -280,7 +302,26 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
         half_size = size / 2
         body_id = get_id(model, mujoco.mjtObj.mjOBJ_BODY, f'cube_{COLOUR_TO_INDEX[name]}')
         yield from set_gripper(0.0)
-        approach = (yield from run_servo(fresh, 'pick_approach'))
+        failed_views = set()
+        for attempt in range(PICK_APPROACH_ATTEMPTS):
+            try:
+                approach = yield from run_servo(fresh, 'pick_approach')
+                break
+            except RuntimeError as error:
+                # Recover only visibility failures before closing the gripper.
+                # Tracking, joint-limit, IK and other errors still stop the task.
+                if not str(error).startswith('PBVS pick_approach: target measurement lost'):
+                    raise
+                if attempt + 1 >= PICK_APPROACH_ATTEMPTS:
+                    raise RuntimeError(f'{name}: pickup approach lost vision after {PICK_APPROACH_ATTEMPTS} attempts. {error}') from error
+                print(f'{name}: {error}')
+                print(f'{name}: holding, then reobserving from another view (attempt {attempt + 2}/{PICK_APPROACH_ATTEMPTS}).')
+                failed_views.add(feedback['pickup_view'])
+                goal_q = data.qpos[q_addresses].copy()
+                yield from hold(0.3)
+                fresh = yield from refresh_target(name, excluded_views=failed_views)
+                if abs(fresh['size'] - size) > 0.003:
+                    raise RuntimeError(f'{name}: recovery size inconsistent with recorded size.')
         pick = (yield from run_servo(dict(approach.last_target), 'pick_descend'))
         grasp_rotation = pick.grasp_rotation_world.copy()
         cube_position = feedback['frames'].base_to_world(pick.last_target['centre_base'])

@@ -6,6 +6,13 @@ GAIN = 0.8
 MAX_CAMERA_SPEED = 0.04
 MAX_CAMERA_ANGULAR_SPEED = 0.35
 MAX_JOINT_SPEED = 0.6
+PICK_APPROACH_CAMERA_SPEED = 0.025
+PICK_APPROACH_ANGULAR_SPEED = 0.15
+PICK_APPROACH_JOINT_SPEED = 0.35
+PLACEMENT_GAIN = 0.5
+PLACEMENT_CAMERA_SPEED = 0.02
+PLACEMENT_ANGULAR_SPEED = 0.15
+PLACEMENT_JOINT_SPEED = 0.25
 DAMPING = 0.005
 ROTATION_WEIGHT = 0.15
 APPROACH_CLEARANCE = 0.035
@@ -50,6 +57,7 @@ class PoseServo:
         self.last_seen = None
         self.command = np.zeros(6)
         self.valid = False
+        self.rejection_reason = 'Waiting for a fresh RGB-D measurement.'
         self.converged = False
         self.stable_frames = 0
         self.translation_error = float('nan')
@@ -58,26 +66,32 @@ class PoseServo:
         self.grasp_rotation_world = None
         self.mount_rotation = None
         self.mount_translation = None
-        self.first_placement_rotation = target.get("placement_rotation_base")
         self.pinch_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, 'gripper_pinch')
         if self.pinch_id < 0:
             raise ValueError('Missing gripper_pinch')
-        self.speed_limit = 0.015 if self.descending else MAX_CAMERA_SPEED
+        self.gain = PLACEMENT_GAIN if self.placing else GAIN
+        self.speed_limit = (PLACEMENT_CAMERA_SPEED if self.placing else
+                            0.015 if self.descending else PICK_APPROACH_CAMERA_SPEED)
+        self.angular_speed_limit = (PLACEMENT_ANGULAR_SPEED if self.placing else
+                                    MAX_CAMERA_ANGULAR_SPEED if self.descending else PICK_APPROACH_ANGULAR_SPEED)
+        self.joint_speed_limit = (PLACEMENT_JOINT_SPEED if self.placing else
+                                  MAX_JOINT_SPEED if self.descending else PICK_APPROACH_JOINT_SPEED)
         self.position_tolerance = 0.0015 if self.descending else POSITION_TOLERANCE
-        self.rotation_tolerance = np.deg2rad(1) if self.descending else ROTATION_TOLERANCE
+        self.rotation_tolerance = np.deg2rad(1) if self.descending or self.placing else ROTATION_TOLERANCE
 
-    def reject_measurement(self):
+    def reject_measurement(self, reason):
         self.stable_frames = 0
         self.converged = False
+        self.rejection_reason = reason
 
     def update(self, measurement, now):
         self.command[:] = 0.0
         self.valid = False
         if measurement is None:
-            self.reject_measurement()
+            self.reject_measurement('No accepted RGB-D cube/surface estimate: check visibility, occlusion and top-face fitting.')
             return
         if abs(measurement['size'] - self.size) > 0.003:
-            self.reject_measurement()
+            self.reject_measurement('Measured size differs from the recorded size by more than 3 mm.')
             return
         centre = np.asarray(measurement['centre_base'], dtype=float)
         old_centre = np.asarray(self.last_target['centre_base'])
@@ -86,7 +100,7 @@ class PoseServo:
             or not np.isfinite(measurement['yaw'])
             or np.linalg.norm(centre - old_centre) > 0.02
         ):
-            self.reject_measurement()
+            self.reject_measurement('Measurement is non-finite or its centre jumped by more than 20 mm.')
             return
         delta = (measurement['yaw'] - self.reference_yaw + np.pi / 4) % (np.pi / 2) - np.pi / 4
         yaw = self.reference_yaw + delta
@@ -103,10 +117,6 @@ class PoseServo:
             self.mount_translation = pinch_rotation_base.T @ (camera_position_base - pinch_position_base)
         object_rotation_base = Rotation.from_euler('z', yaw).as_matrix()
         grasp_rotation_base = object_rotation_base @ np.diag([1.0, -1.0, -1.0])
-        if self.placing and self.name == 'purple':
-            if self.first_placement_rotation is None:
-                self.first_placement_rotation = pinch_rotation_base.copy()
-            grasp_rotation_base = self.first_placement_rotation
         height_offset = GRASP_OFFSET_Z
         if self.placing:
             height_offset += self.held_size / 2 + RELEASE_GAP
@@ -126,12 +136,12 @@ class PoseServo:
         desired_rotation_camera = desired_camera_rotation.T @ object_rotation_base
         translation_error = target_translation_camera - desired_translation_camera
         rotation_error = Rotation.from_matrix(target_rotation_camera @ desired_rotation_camera.T).as_rotvec()
-        omega = GAIN * rotation_error
-        velocity = GAIN * translation_error + np.cross(target_translation_camera, omega)
+        omega = self.gain * rotation_error
+        velocity = self.gain * translation_error + np.cross(target_translation_camera, omega)
         scale = max(
             1.0,
             np.linalg.norm(velocity) / self.speed_limit,
-            np.linalg.norm(omega) / MAX_CAMERA_ANGULAR_SPEED,
+            np.linalg.norm(omega) / self.angular_speed_limit,
         )
         twist = np.r_[velocity, omega] / scale
         jac_position = np.zeros((3, self.model.nv))
@@ -155,12 +165,13 @@ class PoseServo:
             jacobian @ jacobian.T + DAMPING ** 2 * np.eye(6),
             weighted_twist,
         )
-        rates /= max(1.0, np.max(np.abs(rates)) / MAX_JOINT_SPEED)
+        rates /= max(1.0, np.max(np.abs(rates)) / self.joint_speed_limit)
         if not np.all(np.isfinite(rates)):
             raise RuntimeError('Invalid PBVS joint command.')
         self.translation_error = float(np.linalg.norm(translation_error))
         self.rotation_error = float(np.linalg.norm(rotation_error))
         self.valid = True
+        self.rejection_reason = None
         self.last_seen = float(now)
         self.last_target = dict(measurement, name=self.name, yaw=yaw)
         self.grasp_world = frames.base_to_world(final_pinch)

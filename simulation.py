@@ -10,6 +10,7 @@ import numpy as np
 from robot_utils import JOINT_NAMES, MOTOR_NAMES, get_id
 from observation import WorkspaceScanner
 from stacking import stack_cubes
+from estimation import ObserverMonitor
 from vision import (
     CubeDetector,
     CameraFrames,
@@ -141,12 +142,17 @@ def run_scene(seed):
     log_directory = ROOT / 'logs'
     log_directory.mkdir(exist_ok=True)
     log_path = log_directory / f'pbvs_seed_{seed}_{time.time_ns()}.csv'
+    observer_path = log_path.with_name(
+        log_path.name.replace("pbvs_", "observer_", 1)
+    )
     print('Searching for cubes and purple using RGB-D.')
     print('PBVS controls pickup and placement alignment; placement lowering uses a trajectory.')
     print('Press Q in the camera window to exit.')
     print('PBVS log:', log_path)
     try:
-        with log_path.open('w', newline='') as log_file:
+        with log_path.open("w", newline="") as log_file, ObserverMonitor(
+            observer_path, JOINT_NAMES, seed
+        ) as observer:
             writer = csv.writer(log_file)
             writer.writerow([
                 'time_s',
@@ -208,6 +214,14 @@ def run_scene(seed):
                                     print('STOPPED: tracking error or invalid state.')
                                     break
                         mujoco.mj_forward(model, data)
+
+                        observer.sample(
+                            data.time,
+                            data.sensordata[frames.encoder_addresses],
+                            data.qpos[q_addresses],
+                            data.qvel[v_addresses],
+                        )
+
                         viewer.sync()
                         rgb, depth = render_rgbd(renderer, data, options)
                         annotated, detections = detector.detect(rgb, depth)
@@ -378,6 +392,7 @@ def run_scene(seed):
                         remaining = steps_per_frame * dt - (time.perf_counter() - wall_start)
                         if remaining > 0:
                             time.sleep(remaining)
+    
     except KeyboardInterrupt:
         print('\nSimulation stopped.')
     finally:
