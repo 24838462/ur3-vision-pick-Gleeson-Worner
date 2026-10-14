@@ -5,7 +5,6 @@ import numpy as np
 
 class CubeDetector:
     def __init__(self, width, height, fovy_deg):
-        # Intrinsics for the ideal simulated pinhole camera.
         focal = height / (
             2.0 * np.tan(np.deg2rad(fovy_deg) / 2.0)
         )
@@ -32,23 +31,20 @@ class CubeDetector:
         }
 
     def detect(self, rgb, depth):
-        """Detect coloured objects and recover visible surface points."""
         hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
         annotated = rgb.copy()
         detections = {}
-
         kernel = np.ones((3, 3), dtype=np.uint8)
 
         for name, ranges in self.ranges.items():
             mask = np.zeros(depth.shape, dtype=np.uint8)
 
             for lower, upper in ranges:
-                colour_mask = cv2.inRange(
+                mask |= cv2.inRange(
                     hsv,
                     np.array(lower, dtype=np.uint8),
                     np.array(upper, dtype=np.uint8),
                 )
-                mask = cv2.bitwise_or(mask, colour_mask)
 
             mask = cv2.morphologyEx(
                 mask,
@@ -71,18 +67,14 @@ class CubeDetector:
                 continue
 
             component = np.zeros_like(mask)
-
             cv2.drawContours(
                 component,
                 [contour],
                 -1,
                 255,
-                thickness=cv2.FILLED,
+                cv2.FILLED,
             )
-
-            component = cv2.bitwise_and(component, mask)
-
-            # Remove edge pixels that can mix foreground/background.
+            component &= mask
             component = cv2.erode(component, kernel)
 
             valid = (
@@ -98,33 +90,26 @@ class CubeDetector:
                 continue
 
             z = depth[rows, columns]
-
-            # Optical coordinates: X right, Y down, Z forward.
             x = (columns - self.cx) * z / self.fx
             y = (rows - self.cy) * z / self.fy
 
-            points_camera = np.column_stack((x, y, z))
-            surface_point = np.median(points_camera, axis=0)
+            points = np.column_stack((x, y, z))
 
             u = int(np.median(columns))
             v = int(np.median(rows))
-
             bx, by, bw, bh = cv2.boundingRect(contour)
-
-            # A cropped marker is not accepted for placement measurement.
-            touches_border = (
-                bx <= 0
-                or by <= 0
-                or bx + bw >= rgb.shape[1]
-                or by + bh >= rgb.shape[0]
-            )
 
             detections[name] = {
                 "pixel": (u, v),
-                "surface_camera": surface_point,
-                "points_camera": points_camera,
+                "surface_camera": np.median(points, axis=0),
+                "points_camera": points,
                 "depth": float(np.median(z)),
-                "touches_border": touches_border,
+                "touches_border": (
+                    bx <= 0
+                    or by <= 0
+                    or bx + bw >= rgb.shape[1]
+                    or by + bh >= rgb.shape[0]
+                ),
             }
 
             cv2.rectangle(
@@ -134,7 +119,6 @@ class CubeDetector:
                 (255, 255, 255),
                 1,
             )
-
             cv2.circle(
                 annotated,
                 (u, v),
@@ -142,10 +126,9 @@ class CubeDetector:
                 (255, 255, 255),
                 -1,
             )
-
             cv2.putText(
                 annotated,
-                f"{name}: {detections[name]['depth']:.3f} m",
+                f"{name}: {np.median(z):.3f} m",
                 (bx, max(15, by - 5)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.4,
@@ -158,17 +141,17 @@ class CubeDetector:
 
 
 class CameraFrames:
-    """Calculate camera pose using encoder readings and model geometry."""
+    """Forward kinematics using joint encoder measurements."""
 
     def __init__(self, model, joint_names):
         self.model = model
         self.kinematics = mujoco.MjData(model)
 
-        self.camera_id = self._get_id(
+        self.camera_id = self._id(
             mujoco.mjtObj.mjOBJ_CAMERA,
             "wrist_camera",
         )
-        self.base_id = self._get_id(
+        self.base_id = self._id(
             mujoco.mjtObj.mjOBJ_BODY,
             "base_link",
         )
@@ -176,30 +159,26 @@ class CameraFrames:
         self.q_addresses = []
         self.encoder_addresses = []
 
-        for joint_name in joint_names:
-            joint_id = self._get_id(
+        for name in joint_names:
+            joint_id = self._id(
                 mujoco.mjtObj.mjOBJ_JOINT,
-                joint_name,
+                name,
             )
-
-            encoder_name = (
-                joint_name.removesuffix("_joint") + "_encoder"
-            )
-            encoder_id = self._get_id(
+            sensor_id = self._id(
                 mujoco.mjtObj.mjOBJ_SENSOR,
-                encoder_name,
+                name.removesuffix("_joint") + "_encoder",
             )
 
-            if model.sensor_dim[encoder_id] != 1:
+            if model.sensor_dim[sensor_id] != 1:
                 raise ValueError(
-                    f"Expected a scalar encoder: {encoder_name}"
+                    "Expected scalar joint encoder."
                 )
 
             self.q_addresses.append(
                 model.jnt_qposadr[joint_id]
             )
             self.encoder_addresses.append(
-                model.sensor_adr[encoder_id]
+                model.sensor_adr[sensor_id]
             )
 
         self.q_addresses = np.array(self.q_addresses)
@@ -209,174 +188,202 @@ class CameraFrames:
 
         # Optical: X right, Y down, Z forward.
         # MuJoCo camera: X right, Y up, Z backward.
-        self.optical_to_mujoco = np.diag([1.0, -1.0, -1.0])
+        self.optical_to_mujoco = np.diag(
+            [1.0, -1.0, -1.0]
+        )
 
         self.rotation_base_camera = np.eye(3)
         self.position_base_camera = np.zeros(3)
 
-    def _get_id(self, object_type, name):
-        index = mujoco.mj_name2id(
+    def _id(self, kind, name):
+        result = mujoco.mj_name2id(
             self.model,
-            object_type,
+            kind,
             name,
         )
 
-        if index < 0:
-            raise ValueError(f"Missing model element: {name}")
+        if result < 0:
+            raise ValueError(
+                f"Missing model element: {name}"
+            )
 
-        return index
+        return result
 
     def update(self, sensor_data):
-        measured_q = sensor_data[self.encoder_addresses]
-        self.kinematics.qpos[self.q_addresses] = measured_q
-
-        mujoco.mj_kinematics(self.model, self.kinematics)
-        mujoco.mj_camlight(self.model, self.kinematics)
-
-        camera_position_world = (
-            self.kinematics.cam_xpos[self.camera_id]
-        )
-        camera_rotation_world = (
-            self.kinematics.cam_xmat[self.camera_id].reshape(3, 3)
+        self.kinematics.qpos[self.q_addresses] = (
+            sensor_data[self.encoder_addresses]
         )
 
-        base_position_world = (
-            self.kinematics.xpos[self.base_id]
+        mujoco.mj_kinematics(
+            self.model,
+            self.kinematics,
         )
-        base_rotation_world = (
-            self.kinematics.xmat[self.base_id].reshape(3, 3)
+        mujoco.mj_comPos(
+            self.model,
+            self.kinematics,
         )
+        mujoco.mj_camlight(
+            self.model,
+            self.kinematics,
+        )
+
+        data = self.kinematics
+        base_rotation = data.xmat[
+            self.base_id
+        ].reshape(3, 3)
 
         self.position_base_camera = (
-            base_rotation_world.T
-            @ (camera_position_world - base_position_world)
+            base_rotation.T
+            @ (
+                data.cam_xpos[self.camera_id]
+                - data.xpos[self.base_id]
+            )
         )
 
         self.rotation_base_camera = (
-            base_rotation_world.T
-            @ camera_rotation_world
+            base_rotation.T
+            @ data.cam_xmat[self.camera_id].reshape(3, 3)
             @ self.optical_to_mujoco
         )
 
-    def point_to_base(self, point_camera):
+    def point_to_base(self, point):
         return (
-            self.rotation_base_camera @ point_camera
+            self.rotation_base_camera @ point
             + self.position_base_camera
         )
 
-    def points_to_base(self, points_camera):
+    def points_to_base(self, points):
         return (
-            points_camera @ self.rotation_base_camera.T
+            points @ self.rotation_base_camera.T
             + self.position_base_camera
         )
 
+    def base_to_world(self, point):
+        data = self.kinematics
 
-def estimate_table_cube(detection, camera_frames, table_top):
-    """Estimate an upright cube resting directly on the table."""
-    points_base = camera_frames.points_to_base(
+        return (
+            data.xmat[self.base_id].reshape(3, 3) @ point
+            + data.xpos[self.base_id]
+        )
+
+    def world_yaw(self, yaw):
+        direction = (
+            self.kinematics.xmat[
+                self.base_id
+            ].reshape(3, 3)
+            @ np.array([
+                np.cos(yaw),
+                np.sin(yaw),
+                0.0,
+            ])
+        )
+
+        return float(
+            np.arctan2(direction[1], direction[0])
+        )
+
+
+def estimate_table_cube(detection, frames, table_top):
+    """Measure an upright cube resting on the table."""
+    points = frames.points_to_base(
         detection["points_camera"]
     )
 
-    if len(points_base) < 30:
+    if len(points) < 30:
         return None
 
-    top_reference = np.percentile(points_base[:, 2], 90)
-
-    top_points = points_base[
-        np.abs(points_base[:, 2] - top_reference) < 0.0015
+    top_reference = np.percentile(points[:, 2], 90)
+    top = points[
+        np.abs(points[:, 2] - top_reference) < 0.0015
     ]
 
-    if len(top_points) < 25:
+    if len(top) < 25:
         return None
 
-    centred = top_points - top_points.mean(axis=0)
-    _, _, axes = np.linalg.svd(centred, full_matrices=False)
-    normal = axes[-1]
+    _, _, axes = np.linalg.svd(
+        top - top.mean(axis=0),
+        full_matrices=False,
+    )
 
-    if abs(normal[2]) < np.cos(np.deg2rad(10)):
+    if abs(axes[-1, 2]) < np.cos(np.deg2rad(10)):
         return None
 
-    top_z = float(np.median(top_points[:, 2]))
-
-    # Cube assumption: edge length equals height above the table.
+    top_z = float(np.median(top[:, 2]))
     size = top_z - table_top
 
     if not 0.015 <= size <= 0.075:
         return None
 
-    xy = np.ascontiguousarray(
-        top_points[:, :2],
-        dtype=np.float32,
+    rectangle = cv2.minAreaRect(
+        np.ascontiguousarray(
+            top[:, :2],
+            dtype=np.float32,
+        )
     )
 
-    rectangle = cv2.minAreaRect(xy)
     (centre_x, centre_y), (width, length), _ = rectangle
 
-    if min(width, length) < 0.75 * size:
-        return None
-
-    if max(width, length) > 1.15 * size:
-        return None
-
-    if min(width, length) / max(width, length) < 0.80:
+    if (
+        min(width, length) < 0.75 * size
+        or max(width, length) > 1.15 * size
+        or min(width, length) / max(width, length) < 0.8
+    ):
         return None
 
     corners = cv2.boxPoints(rectangle)
     edge = corners[1] - corners[0]
 
-    yaw = float(np.arctan2(edge[1], edge[0]))
-    yaw = (yaw + np.pi / 4) % (np.pi / 2) - np.pi / 4
+    yaw = (
+        np.arctan2(edge[1], edge[0]) + np.pi / 4
+    ) % (np.pi / 2) - np.pi / 4
 
     return {
         "size": float(size),
         "centre_base": np.array([
             centre_x,
             centre_y,
-            top_z - size / 2.0,
+            top_z - size / 2,
         ]),
         "top_centre_base": np.array([
             centre_x,
             centre_y,
             top_z,
         ]),
-        "yaw": yaw,
+        "yaw": float(yaw),
         "outline_size": np.array([width, length]),
-        "top_points": len(top_points),
+        "top_points": len(top),
     }
 
 
-def estimate_placement_square(detection, camera_frames, table_top):
-    """Measure the purple marker position from its RGB-D points."""
+def estimate_placement_square(detection, frames, table_top):
+    """Locate the purple square during the initial search."""
     if detection.get("touches_border", False):
         return None
 
-    points_base = camera_frames.points_to_base(
+    points = frames.points_to_base(
         detection["points_camera"]
     )
-
-    points = points_base[
-        np.abs(points_base[:, 2] - table_top) < 0.005
+    points = points[
+        np.abs(points[:, 2] - table_top) < 0.005
     ]
 
     if len(points) < 30:
         return None
 
-    xy = np.ascontiguousarray(
-        points[:, :2],
-        dtype=np.float32,
+    rectangle = cv2.minAreaRect(
+        np.ascontiguousarray(
+            points[:, :2],
+            dtype=np.float32,
+        )
     )
 
-    rectangle = cv2.minAreaRect(xy)
     (centre_x, centre_y), (width, length), _ = rectangle
 
-    # Known 110 mm marker size is used only for quality checks.
-    if min(width, length) < 0.09:
-        return None
-
-    if max(width, length) > 0.125:
-        return None
-
-    if min(width, length) / max(width, length) < 0.85:
+    if (
+        min(width, length) < 0.09
+        or max(width, length) > 0.125
+        or min(width, length) / max(width, length) < 0.85
+    ):
         return None
 
     return {
@@ -387,4 +394,80 @@ def estimate_placement_square(detection, camera_frames, table_top):
         ]),
         "width": float(width),
         "length": float(length),
+    }
+
+
+def estimate_support_square(detection, frames, expected_size):
+    """Measure the top surface of purple or a placed cube.
+
+    Expected edge size comes from the marker configuration or
+    the cube size recorded earlier through vision. Surface height
+    and position are measured afresh from RGB-D.
+    """
+    if (
+        detection is None
+        or detection.get("touches_border", False)
+    ):
+        return None
+
+    points = frames.points_to_base(
+        detection["points_camera"]
+    )
+    points = points[
+        np.all(np.isfinite(points), axis=1)
+    ]
+
+    if len(points) < 30:
+        return None
+
+    top_reference = np.percentile(points[:, 2], 90)
+    top = points[
+        np.abs(points[:, 2] - top_reference) < 0.0015
+    ]
+
+    if len(top) < 25:
+        return None
+
+    _, _, axes = np.linalg.svd(
+        top - top.mean(axis=0),
+        full_matrices=False,
+    )
+
+    if abs(axes[-1, 2]) < np.cos(np.deg2rad(10)):
+        return None
+
+    rectangle = cv2.minAreaRect(
+        np.ascontiguousarray(
+            top[:, :2],
+            dtype=np.float32,
+        )
+    )
+
+    (x, y), (width, length), _ = rectangle
+
+    # Reject heavily cropped or occluded surface outlines.
+    if (
+        min(width, length) < 0.80 * expected_size
+        or max(width, length) > 1.15 * expected_size
+        or min(width, length) / max(width, length) < 0.85
+    ):
+        return None
+
+    corners = cv2.boxPoints(rectangle)
+    edge = corners[1] - corners[0]
+
+    yaw = (
+        np.arctan2(edge[1], edge[0]) + np.pi / 4
+    ) % (np.pi / 2) - np.pi / 4
+
+    return {
+        "centre_base": np.array([
+            x,
+            y,
+            np.median(top[:, 2]),
+        ]),
+        "size": float(expected_size),
+        "yaw": float(yaw),
+        "surface": True,
+        "outline_size": np.array([width, length]),
     }

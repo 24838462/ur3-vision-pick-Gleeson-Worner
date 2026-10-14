@@ -122,8 +122,12 @@ def attach_camera():
     )
 
     housing = deepcopy(camera.find("./worldbody/body"))
-    mount.append(housing)
 
+    # Tilt the camera housing and lens 15 degrees towards
+    # the gripper centre. The bracket remains stationary.
+    housing.set("quat", "0.991445 0.130526 0 0")
+
+    mount.append(housing)
     # RGB pupil mesh centre is approximately:
     # [0.0325, 0.000001, -0.003605] metres.
     # Put the viewpoint just ahead of its surface.

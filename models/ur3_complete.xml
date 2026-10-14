@@ -450,7 +450,7 @@
                         </body>
                         <body name="wrist_camera_mount" pos="0 0.065 0.04">
                           <geom name="wrist_camera_bracket" size="0.008 0.0325 0.003" pos="0 -0.0325 -0.028" type="box" group="2" rgba="0.35 0.35 0.4 1" mass="0.015"/>
-                          <body name="wrist_d435i_d435i" childclass="wrist_d435i_d435i">
+                          <body name="wrist_d435i_d435i" childclass="wrist_d435i_d435i" quat="0.991445 0.130526 0 0">
                             <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Lens" mesh="wrist_d435i_d435i_0"/>
                             <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Emitter_Lens" mesh="wrist_d435i_d435i_1"/>
                             <geom class="wrist_d435i_visual" quat="1 0 0 0" mass="0" material="wrist_d435i_IR_Rim" mesh="wrist_d435i_d435i_2"/>
