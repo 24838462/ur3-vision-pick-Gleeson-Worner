@@ -218,11 +218,34 @@ def run_scene(seed):
                                 # the existing PD controller.
                                 try:
                                     if arm_controller is not None:
+                                        if (
+                                            data.time + 1e-10
+                                            >= arm_controller.next_update
+                                        ):
+                                            # Refresh joint-position sensors.
+                                            mujoco.mj_sensorPos(model, data)
+
+                                            observer.sample(
+                                                data.time,
+                                                data.sensordata[
+                                                    frames.encoder_addresses
+                                                ],
+                                                data.qpos[q_addresses],
+                                                data.qvel[v_addresses],
+                                                acceleration=(
+                                                    arm_controller
+                                                    .acceleration_command
+                                                    .copy()
+                                                ),
+                                            )
+
                                         data.ctrl[motors] = (
                                             arm_controller.commands(
                                                 data,
                                                 desired_q,
                                                 desired_qd,
+                                                estimated_q=observer.filter.q,
+                                                estimated_qd=observer.filter.qd,
                                             )
                                         )
 
@@ -283,16 +306,17 @@ def run_scene(seed):
                         # Refresh sensors at the current state.
                         mujoco.mj_forward(model, data)
 
-                        # Observer evaluation remains separate
-                        # from the controller for this first test.
-                        observer.sample(
-                            data.time,
-                            data.sensordata[
-                                frames.encoder_addresses
-                            ],
-                            data.qpos[q_addresses],
-                            data.qvel[v_addresses],
-                        )
+                        # In LQI mode, the same observer is already
+                        # updated and logged at the control rate.
+                        if arm_controller is None:
+                            observer.sample(
+                                data.time,
+                                data.sensordata[
+                                    frames.encoder_addresses
+                                ],
+                                data.qpos[q_addresses],
+                                data.qvel[v_addresses],
+                            )
 
                         viewer.sync()
                         rgb, depth = render_rgbd(renderer, data, options)

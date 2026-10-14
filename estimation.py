@@ -1,16 +1,19 @@
-"""Encoder-only joint observer and evaluation logging."""
+"""Encoder-only joint estimation and evaluation logging."""
 
 import csv
+
 import numpy as np
 
 
-# Initial simulated noise assumptions; tune using logged results.
 ENCODER_NOISE_DEG = 0.05
-ACCELERATION_STD = 0.5  # rad/s²
+
+# Uncertainty in acceleration beyond the nominal command.
+# Increased for the faster filter and unmodelled contact loads.
+ACCELERATION_STD = 2.0  # rad/s^2
 
 
 class JointStateObserver:
-    """Position/velocity Kalman filter for each arm joint."""
+    """Six position/velocity Kalman filters with known input."""
 
     def __init__(
         self,
@@ -23,7 +26,6 @@ class JointStateObserver:
         self.R = max(self.encoder_std**2, 1e-12)
         self.acceleration_std = acceleration_std
 
-        # Each joint has states [position, velocity].
         self.x = np.zeros((joints, 2))
         self.P = np.tile(
             np.diag([self.R, 1.0]),
@@ -41,7 +43,7 @@ class JointStateObserver:
     def qd(self):
         return self.x[:, 1].copy()
 
-    def update(self, measured_q, now):
+    def update(self, measured_q, now, acceleration=None):
         measured_q = np.asarray(measured_q, dtype=float)
         now = float(now)
 
@@ -50,14 +52,31 @@ class JointStateObserver:
             or not np.all(np.isfinite(measured_q))
         ):
             raise ValueError(
-                "Observer requires finite joint encoder readings."
+                "Observer requires finite encoder readings."
             )
 
         if not np.isfinite(now):
             raise ValueError("Invalid observer timestamp.")
 
+        if acceleration is None:
+            acceleration = np.zeros(self.joints)
+        else:
+            acceleration = np.asarray(
+                acceleration, dtype=float
+            )
+
+        if (
+            acceleration.shape != (self.joints,)
+            or not np.all(np.isfinite(acceleration))
+        ):
+            raise ValueError(
+                "Observer requires finite acceleration inputs."
+            )
+
         if self.last_time is None:
+            # The simulation starts with the arm at rest.
             self.x[:, 0] = measured_q
+            self.x[:, 1] = 0.0
             self.last_time = now
             return
 
@@ -66,27 +85,32 @@ class JointStateObserver:
         if dt <= 0:
             return
 
-        # Constant-velocity prediction.
         A = np.array([
             [1.0, dt],
             [0.0, 1.0],
         ])
 
-        # Allow velocity to change through process noise.
-        G = np.array([0.5 * dt**2, dt])
-        Q = self.acceleration_std**2 * np.outer(G, G)
+        B = np.array([0.5 * dt**2, dt])
 
-        self.x = self.x @ A.T
+        Q = (
+            self.acceleration_std**2
+            * np.outer(B, B)
+        )
+
+        # Predict using the command applied during the
+        # interval since the previous encoder sample.
+        self.x = (
+            self.x @ A.T
+            + acceleration[:, None] * B
+        )
         self.P = A @ self.P @ A.T + Q
 
-        # Correct using position encoders only: C = [1, 0].
         innovation = measured_q - self.x[:, 0]
         S = self.P[:, 0, 0] + self.R
         K = self.P[:, :, 0] / S[:, None]
 
         self.x += K * innovation[:, None]
 
-        # Joseph covariance update.
         correction = np.tile(
             np.eye(2),
             (self.joints, 1, 1),
@@ -108,7 +132,7 @@ class JointStateObserver:
 
 
 class ObserverMonitor:
-    """Run the observer and compare it with evaluation ground truth."""
+    """Supply estimates and log errors against evaluation truth."""
 
     def __init__(self, path, joint_names, seed=None):
         self.path = path
@@ -117,7 +141,6 @@ class ObserverMonitor:
             joints=len(self.joint_names)
         )
 
-        # Independent RNG: does not change cube spawn locations.
         self.rng = np.random.default_rng(
             np.random.SeedSequence(
                 seed,
@@ -146,32 +169,63 @@ class ObserverMonitor:
             "q_std_rad",
             "qd_std_rad_s",
             "nis",
+            "commanded_acceleration_rad_s2",
         ])
 
         print("Observer evaluation log:", self.path)
+        print(
+            "Observer assumptions: "
+            f"encoder noise={ENCODER_NOISE_DEG:.3f} deg, "
+            f"acceleration uncertainty="
+            f"{ACCELERATION_STD:.2f} rad/s^2."
+        )
         return self
 
-    def sample(self, now, encoder_q, true_q, true_qd):
+    def sample(
+        self,
+        now,
+        encoder_q,
+        true_q,
+        true_qd,
+        acceleration=None,
+    ):
         if (
             self.filter.last_time is not None
             and now <= self.filter.last_time
         ):
-            return
+            return self.filter.q, self.filter.qd
 
-        measured = np.asarray(encoder_q).copy()
+        joints = len(self.joint_names)
+
+        if acceleration is None:
+            acceleration = np.zeros(joints)
+        else:
+            acceleration = np.asarray(
+                acceleration, dtype=float
+            ).copy()
+
+        measured = np.asarray(
+            encoder_q, dtype=float
+        ).copy()
+
         measured += self.rng.normal(
             0.0,
             self.filter.encoder_std,
-            len(self.joint_names),
+            joints,
         )
 
-        # Ground truth is not supplied to the filter.
-        self.filter.update(measured, now)
+        # No ground truth enters the filter.
+        self.filter.update(
+            measured, now, acceleration
+        )
 
         q = self.filter.q
         qd = self.filter.qd
 
-        # Ground truth is used only below for evaluation.
+        # Ground truth is used only for evaluation below.
+        true_q = np.asarray(true_q)
+        true_qd = np.asarray(true_qd)
+
         q_error = q - true_q
         qd_error = qd - true_qd
 
@@ -198,6 +252,7 @@ class ObserverMonitor:
                 uncertainty[i, 0],
                 uncertainty[i, 1],
                 self.filter.nis[i],
+                acceleration[i],
             ])
 
         self.error_sum += [
@@ -205,12 +260,14 @@ class ObserverMonitor:
             np.sum(q_error**2),
             np.sum(qd_error**2),
         ]
-        self.samples += len(self.joint_names)
+        self.samples += joints
 
         if now >= self.next_report:
             self.next_report = now + 2.0
             self.report()
             self.file.flush()
+
+        return q, qd
 
     def report(self):
         if not self.samples:

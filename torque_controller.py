@@ -1,13 +1,7 @@
-"""Map nominal LQR joint accelerations to arm motor commands.
+"""Computed-torque LQI using estimated arm joint states.
 
-First-stage development controller:
-- Uses simulator joint positions and velocities.
-- Updates at approximately 100 Hz.
-- Assumes six direct, unit-gear torque motors.
-- Does not compensate contact forces.
-- Assumes zero commanded acceleration for other model DOFs.
-
-Observer feedback will be connected separately.
+Other model DOFs retain simulator states for this development
+stage. Contact forces are not explicitly compensated.
 """
 
 import mujoco
@@ -36,7 +30,6 @@ class ComputedTorqueController:
                     "Expected six arm joints and motors."
                 )
 
-        # Check the transmission and actuator assumptions.
         for motor, q_address, v_address in zip(
             self.motors, self.qa, self.va
         ):
@@ -45,7 +38,7 @@ class ComputedTorqueController:
                 != mujoco.mjtTrn.mjTRN_JOINT
             ):
                 raise ValueError(
-                    "Arm actuators must drive individual joints."
+                    "Arm motors must drive individual joints."
                 )
 
             joint = model.actuator_trnid[motor, 0]
@@ -55,7 +48,7 @@ class ComputedTorqueController:
                 or model.jnt_dofadr[joint] != v_address
             ):
                 raise ValueError(
-                    "Motor and joint address ordering disagree."
+                    "Motor and joint ordering disagree."
                 )
 
             if (
@@ -76,22 +69,19 @@ class ComputedTorqueController:
                     "Expected direct unit-gear torque motors."
                 )
 
-        # Match the control interval to whole physics steps.
         physics_dt = float(model.opt.timestep)
-
         self.control_steps = max(
             1, int(round(sample_time / physics_dt))
         )
-        self.sample_time = self.control_steps * physics_dt
+        self.sample_time = (
+            self.control_steps * physics_dt
+        )
 
         self.feedback = JointStateFeedback(
             self.sample_time
         )
 
-        # Separate data prevents dynamics calculations from
-        # changing the live simulation's state or sensors.
         self.dynamics = mujoco.MjData(model)
-
         self.full_acceleration = np.zeros(model.nv)
         self.inertial_force = np.zeros(model.nv)
 
@@ -110,7 +100,8 @@ class ComputedTorqueController:
             f"control interval={self.sample_time:.4f} s."
         )
         print(
-            "Feedback currently uses simulator joint state."
+            "Arm feedback and compensation use "
+            "observer estimates."
         )
 
     def commands(
@@ -118,16 +109,30 @@ class ComputedTorqueController:
         data,
         desired_q,
         desired_qd,
+        *,
+        estimated_q,
+        estimated_qd,
         desired_qdd=None,
     ):
-        """Return motor commands, held between control updates."""
         if data.time + 1e-10 < self.next_update:
             return self.command.copy()
 
-        self.next_update = data.time + self.sample_time
+        self.next_update = (
+            data.time + self.sample_time
+        )
 
-        q = data.qpos[self.qa]
-        qd = data.qvel[self.va]
+        q = np.asarray(estimated_q, dtype=float)
+        qd = np.asarray(estimated_qd, dtype=float)
+
+        if (
+            q.shape != (6,)
+            or qd.shape != (6,)
+            or not np.all(np.isfinite(q))
+            or not np.all(np.isfinite(qd))
+        ):
+            raise ValueError(
+                "Invalid observer state supplied to control."
+            )
 
         self.acceleration_command = (
             self.feedback.acceleration(
@@ -139,9 +144,13 @@ class ComputedTorqueController:
             )
         )
 
-        # Refresh dynamics at the current state.
+        # Retain other model states, then replace the arm
+        # state before calculating inertia and bias forces.
         self.dynamics.qpos[:] = data.qpos
         self.dynamics.qvel[:] = data.qvel
+
+        self.dynamics.qpos[self.qa] = q
+        self.dynamics.qvel[self.va] = qd
         self.dynamics.time = data.time
 
         mujoco.mj_fwdPosition(
@@ -156,7 +165,6 @@ class ComputedTorqueController:
             self.acceleration_command
         )
 
-        # inertial_force = M(q) @ commanded_acceleration
         mujoco.mj_mulM(
             self.model,
             self.dynamics,
@@ -181,7 +189,6 @@ class ComputedTorqueController:
         limited = self.model.actuator_ctrllimited[
             self.motors
         ].astype(bool)
-
         ranges = self.model.actuator_ctrlrange[
             self.motors
         ]
@@ -205,7 +212,7 @@ class ComputedTorqueController:
         if saturated and data.time >= self.next_warning:
             self.next_warning = data.time + 2.0
             print(
-                "LQR motor command clipped; "
+                "LQI motor command clipped; "
                 "check tracking and torque limits."
             )
 
