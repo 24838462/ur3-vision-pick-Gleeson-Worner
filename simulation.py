@@ -298,6 +298,23 @@ def run_scene(seed):
                                 ):
                                     frozen = True
                                     print(
+                                        "Tracking errors (deg):",
+                                        np.round(error_deg, 3),
+                                    )
+                                    print(
+                                        "Joint velocities (rad/s):",
+                                        np.round(
+                                            data.qvel[v_addresses], 4
+                                        ),
+                                    )
+                                    print(
+                                        "State finite:",
+                                        bool(
+                                            np.all(np.isfinite(data.qpos))
+                                            and np.all(np.isfinite(data.qvel))
+                                        ),
+                                    )
+                                    print(
                                         "STOPPED: tracking error "
                                         "or invalid state."
                                     )

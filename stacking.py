@@ -129,35 +129,139 @@ def stack_cubes(model, data, q_addresses, v_addresses, home, catalog, feedback):
             yield (q.copy(), qd.copy(), gripper_command)
         yield from settle()
 
-    def move_line(start_position, end_position, rotation, label, speed=VERTICAL_SPEED):
-        """Approximate a Cartesian line using IK and a joint spline."""
+    def move_line(
+        start_position,
+        end_position,
+        rotation,
+        label,
+        speed=VERTICAL_SPEED,
+    ):
+        """Cartesian line with joint speed/acceleration timing."""
         nonlocal goal_q
+
         print(label)
-        start_position = np.asarray(start_position, dtype=float)
-        end_position = np.asarray(end_position, dtype=float)
+
+        if speed <= 0:
+            raise ValueError("Movement speed must be positive.")
+
+        start_position = np.asarray(
+            start_position, dtype=float
+        )
+        end_position = np.asarray(
+            end_position, dtype=float
+        )
+
         path = np.linspace(0.0, 1.0, 15)
-        joint_points = [data.qpos[q_addresses].copy()]
+        joint_points = [
+            data.qpos[q_addresses].copy()
+        ]
+
         for fraction in path[1:]:
-            position = start_position + fraction * (end_position - start_position)
-            solution = solve_ik(position, rotation, initial_q=joint_points[-1])
-            if np.max(np.abs(solution - joint_points[-1])) > np.deg2rad(45):
-                raise RuntimeError('Clearance movement encountered an IK configuration jump.')
+            position = (
+                start_position
+                + fraction * (
+                    end_position - start_position
+                )
+            )
+
+            solution = solve_ik(
+                position,
+                rotation,
+                initial_q=joint_points[-1],
+            )
+
+            if np.max(np.abs(
+                solution - joint_points[-1]
+            )) > np.deg2rad(45):
+                raise RuntimeError(
+                    "Clearance movement encountered "
+                    "an IK configuration jump."
+                )
+
             joint_points.append(solution)
-        curve = CubicSpline(path, np.asarray(joint_points), axis=0, bc_type='natural')
-        samples = np.linspace(0.0, 1.0, 200)
-        peak_joint_slope = np.max(np.abs(curve(samples, 1)))
+
+        curve = CubicSpline(
+            path,
+            np.asarray(joint_points),
+            axis=0,
+            bc_type="natural",
+        )
+
+        # Evaluate the complete quintic-timed joint path.
+        u = np.linspace(0.0, 1.0, 1001)
+
+        progress = (
+            10 * u**3 - 15 * u**4 + 6 * u**5
+        )
+        progress_rate = (
+            30 * u**2 - 60 * u**3 + 30 * u**4
+        )
+        progress_acceleration = (
+            60 * u - 180 * u**2 + 120 * u**3
+        )
+
+        # These derivatives assume a one-second duration.
+        unit_velocity = (
+            curve(progress, 1)
+            * progress_rate[:, None]
+        )
+
+        unit_acceleration = (
+            curve(progress, 2)
+            * progress_rate[:, None]**2
+            + curve(progress, 1)
+            * progress_acceleration[:, None]
+        )
+
+        peak_velocity = float(
+            np.max(np.abs(unit_velocity))
+        )
+        peak_acceleration = float(
+            np.max(np.abs(unit_acceleration))
+        )
+
+        acceleration_limit = 0.5  # rad/s^2
+
         duration = max(
             1.2,
-            1.875 * np.linalg.norm(end_position - start_position) / speed,
-            1.875 * peak_joint_slope / np.deg2rad(MAX_JOINT_SPEED_DEG),
+            1.875 * np.linalg.norm(
+                end_position - start_position
+            ) / speed,
+            peak_velocity
+            / np.deg2rad(MAX_JOINT_SPEED_DEG),
+            np.sqrt(
+                1.1 * peak_acceleration
+                / acceleration_limit
+            ),
         )
-        steps = int(np.ceil(duration / dt))
+
+        steps = max(
+            1, int(np.ceil(duration / dt))
+        )
         duration = steps * dt
+
+        print(f"Trajectory duration: {duration:.2f} s")
+
         for step in range(steps + 1):
-            u = step / steps
-            progress = 10 * u ** 3 - 15 * u ** 4 + 6 * u ** 5
-            progress_rate = (30 * u ** 2 - 60 * u ** 3 + 30 * u ** 4) / duration
-            yield (curve(progress), curve(progress, 1) * progress_rate, gripper_command)
+            fraction = step / steps
+
+            progress = (
+                10 * fraction**3
+                - 15 * fraction**4
+                + 6 * fraction**5
+            )
+            progress_rate = (
+                30 * fraction**2
+                - 60 * fraction**3
+                + 30 * fraction**4
+            ) / duration
+
+            yield (
+                curve(progress),
+                curve(progress, 1) * progress_rate,
+                gripper_command,
+            )
+
         goal_q = joint_points[-1].copy()
         yield from settle()
 
