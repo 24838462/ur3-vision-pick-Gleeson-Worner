@@ -487,6 +487,15 @@
       <joint name="cube_2_joint" type="free"/>
       <geom name="cube_2_geom" size="0.025 0.025 0.025" type="box" friction="0.8" rgba="0.1 0.3 0.9 1" mass="0.05"/>
     </body>
+    <body name="safety_camera_mount" pos="0.3 0 0.85">
+      <geom name="safety_cam_pole" type="cylinder" size="0.008 0.12" pos="0 0 0.08" rgba="0.3 0.3 0.35 1" contype="0" conaffinity="0"/>
+      <geom name="safety_cam_housing" type="box" size="0.045 0.03 0.02" rgba="0.15 0.15 0.18 1" contype="0" conaffinity="0"/>
+      <geom name="safety_cam_lens" type="cylinder" size="0.016 0.008" pos="0 0 -0.02" rgba="0.05 0.05 0.05 1" contype="0" conaffinity="0"/>
+      <camera name="safety_camera" pos="0 0 -0.02" quat="1 0 0 0" fovy="60"/>
+    </body>
+    <body name="obstacle" mocap="true" pos="10 10 10">
+      <geom name="obstacle_geom" size="0.035" type="sphere" rgba="0.0 1.0 1.0 1.0" contype="0" conaffinity="0"/>
+    </body>
   </worldbody>
 
   <contact>

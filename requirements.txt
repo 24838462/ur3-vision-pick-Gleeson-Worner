@@ -1,0 +1,5 @@
+mujoco>=3.0.0
+opencv-python>=4.8.0
+numpy
+scipy
+roboticstoolbox-python

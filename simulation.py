@@ -12,6 +12,11 @@ from observation import WorkspaceScanner
 from stacking import stack_cubes
 from estimation import ObserverMonitor
 from torque_controller import ComputedTorqueController
+from safety_monitor import (
+    StationarySafetyCamera,
+    InteractiveObstacle,
+    SafetyStatus,
+)
 from vision import (
     CubeDetector,
     CameraFrames,
@@ -35,14 +40,19 @@ CAMERA_WIDTH = 320
 CAMERA_HEIGHT = 240
 CAMERA_FPS = 15
 
-def display(rgb, depth, status):
-    colour = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+def depth_to_colormap(depth):
     valid = np.isfinite(depth) & (depth > 0)
     safe_depth = np.where(valid, depth, 1.0)
     scaled = np.clip((safe_depth - 0.05) / 0.95, 0.0, 1.0)
     panel = cv2.applyColorMap(((1 - scaled) * 255).astype(np.uint8), cv2.COLORMAP_TURBO)
     panel[~valid] = 0
-    for image, title in ((colour, 'RGB'), (panel, 'Depth: near = warm')):
+    return panel
+
+def display_dashboard(wrist_rgb, wrist_depth, wrist_status, safety_rgb, safety_depth, safety_camera, obstacle_active):
+    # Top row: Wrist Camera RGB + Depth
+    colour = cv2.cvtColor(wrist_rgb, cv2.COLOR_RGB2BGR)
+    wrist_panel = depth_to_colormap(wrist_depth)
+    for image, title in ((colour, 'Wrist Camera (PBVS)'), (wrist_panel, 'Wrist Depth: near = warm')):
         cv2.putText(
             image,
             title,
@@ -55,7 +65,7 @@ def display(rgb, depth, status):
         )
     cv2.putText(
         colour,
-        status,
+        wrist_status,
         (8, colour.shape[0] - 10),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.35,
@@ -63,7 +73,24 @@ def display(rgb, depth, status):
         1,
         cv2.LINE_AA,
     )
-    return np.hstack((colour, panel))
+    wrist_row = np.hstack((colour, wrist_panel))
+
+    # Bottom row: Overhead Safety Camera (Annotated RGB with HUD) + Depth
+    safety_annotated = safety_camera.annotate_view(safety_rgb, safety_depth, obstacle_active)
+    safety_panel = depth_to_colormap(safety_depth)
+    cv2.putText(
+        safety_panel,
+        'Overhead Safety Depth',
+        (8, 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (255, 255, 255),
+        1,
+        cv2.LINE_AA,
+    )
+    safety_row = np.hstack((safety_annotated, safety_panel))
+
+    return np.vstack((wrist_row, safety_row))
 
 def create_scene(seed):
     """Initialise only; spawn positions are not passed to the task."""
@@ -100,12 +127,12 @@ def create_scene(seed):
     mujoco.mj_forward(model, data)
     return (model, data, q_addresses, v_addresses, motors, gripper, camera, home)
 
-def render_rgbd(renderer, data, options):
+def render_rgbd(renderer, data, options, camera_name='wrist_camera'):
     renderer.disable_depth_rendering()
-    renderer.update_scene(data, camera='wrist_camera', scene_option=options)
+    renderer.update_scene(data, camera=camera_name, scene_option=options)
     rgb = renderer.render().copy()
     renderer.enable_depth_rendering()
-    renderer.update_scene(data, camera='wrist_camera', scene_option=options)
+    renderer.update_scene(data, camera=camera_name, scene_option=options)
     depth = renderer.render().copy()
     renderer.disable_depth_rendering()
     return (rgb, depth)
@@ -159,6 +186,18 @@ def run_scene(seed):
     print('PBVS controls pickup and placement alignment; placement lowering uses a trajectory.')
     print('Press Q in the camera window to exit.')
     print('PBVS log:', log_path)
+    # Stationary safety camera & interactive test obstacle
+    safety_camera = StationarySafetyCamera(
+        model,
+        camera_name="safety_camera",
+        width=CAMERA_WIDTH,
+        height=CAMERA_HEIGHT,
+    )
+    obstacle = InteractiveObstacle(model, data, name="obstacle")
+    pinch_site = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "gripper_pinch")
+    safety_status = SafetyStatus.NORMAL
+    last_safety_status = SafetyStatus.NORMAL
+
     try:
         with log_path.open("w", newline="") as log_file, ObserverMonitor(
             observer_path, JOINT_NAMES, seed
@@ -175,7 +214,7 @@ def run_scene(seed):
                 'converged',
             ])
             cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-            cv2.resizeWindow(window, 2 * CAMERA_WIDTH, CAMERA_HEIGHT)
+            cv2.resizeWindow(window, 2 * CAMERA_WIDTH, 2 * CAMERA_HEIGHT)
             with mujoco.Renderer(model, height=CAMERA_HEIGHT, width=CAMERA_WIDTH) as renderer:
                 with mujoco.viewer.launch_passive(model, data) as viewer:
                     with viewer.lock():
@@ -186,33 +225,42 @@ def run_scene(seed):
                         wall_start = time.perf_counter()
                         if not frozen:
                             for _ in range(steps_per_frame):
-                                active = (
-                                    task
-                                    if task is not None
-                                    else search
-                                )
+                                if safety_status == SafetyStatus.RETREAT:
+                                    desired_qd = np.zeros(6)
+                                    error_to_home = home - desired_q
+                                    dist = np.linalg.norm(error_to_home)
+                                    if dist > 1e-4:
+                                        desired_q += (error_to_home / dist) * min(0.003, dist)
+                                elif safety_status == SafetyStatus.INTERRUPT:
+                                    desired_qd = np.zeros(6)
+                                else:
+                                    active = (
+                                        task
+                                        if task is not None
+                                        else search
+                                    )
 
-                                if active is not None:
-                                    try:
-                                        desired_q, desired_qd, grip = next(active)
+                                    if active is not None:
+                                        try:
+                                            desired_q, desired_qd, grip = next(active)
 
-                                    except StopIteration:
-                                        desired_qd = np.zeros(6)
+                                        except StopIteration:
+                                            desired_qd = np.zeros(6)
 
-                                        if task is not None:
+                                            if task is not None:
+                                                frozen = True
+                                                break
+
+                                            search = None
+
+                                        except (
+                                            RuntimeError,
+                                            ValueError,
+                                            np.linalg.LinAlgError,
+                                        ) as error:
                                             frozen = True
+                                            print("STOPPED:", error)
                                             break
-
-                                        search = None
-
-                                    except (
-                                        RuntimeError,
-                                        ValueError,
-                                        np.linalg.LinAlgError,
-                                    ) as error:
-                                        frozen = True
-                                        print("STOPPED:", error)
-                                        break
 
                                 # Arm control: LQR computed torque or
                                 # the existing PD controller.
@@ -319,8 +367,21 @@ def run_scene(seed):
                             )
 
                         viewer.sync()
-                        rgb, depth = render_rgbd(renderer, data, options)
+                        rgb, depth = render_rgbd(renderer, data, options, camera_name='wrist_camera')
                         annotated, detections = detector.detect(rgb, depth)
+                        safety_rgb, safety_depth = render_rgbd(renderer, data, options, camera_name='safety_camera')
+                        pinch_pos = data.site_xpos[pinch_site].copy() if pinch_site >= 0 else None
+                        known_cubes = [r['centre_base'] for r in records.values()] if records else None
+                        safety_status = safety_camera.update(
+                            safety_rgb,
+                            safety_depth,
+                            data,
+                            now=data.time,
+                            robot_pinch_pos=pinch_pos,
+                        )
+                        if safety_status != last_safety_status:
+                            print(f"[Safety Net] Status transition: {last_safety_status.value.upper()} -> {safety_status.value.upper()}")
+                            last_safety_status = safety_status
                         frames.update(data.sensordata)
                         measurements = {}
                         for name in CUBE_NAMES:
@@ -471,18 +532,33 @@ def run_scene(seed):
                                     '; purple:',
                                     placement is not None,
                                 )
-                        if frozen:
-                            status = 'Paused'
+                        if safety_status in (SafetyStatus.INTERRUPT, SafetyStatus.RETREAT):
+                            display_status = f"INTERRUPTED ({safety_status.value.upper()})"
+                        elif frozen:
+                            display_status = 'Paused'
                         elif task is None:
-                            status = scanner.status
+                            display_status = scanner.status
                         elif feedback['servo'] is not None:
-                            status = feedback['servo'].phase
+                            display_status = feedback['servo'].phase
                         else:
-                            status = feedback['mode']
-                        cv2.imshow(window, display(annotated, depth, status))
-                        key = cv2.waitKey(1) & 255
-                        if key == ord('q'):
-                            break
+                            display_status = feedback['mode']
+                        cv2.imshow(
+                            window,
+                            display_dashboard(
+                                annotated,
+                                depth,
+                                display_status,
+                                safety_rgb,
+                                safety_depth,
+                                safety_camera,
+                                obstacle.active,
+                            )
+                        )
+                        key = cv2.waitKeyEx(1)
+                        if key != -1:
+                            if (key & 255) == ord('q'):
+                                break
+                            obstacle.handle_key(key)
                         if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:
                             break
                         remaining = steps_per_frame * dt - (time.perf_counter() - wall_start)
