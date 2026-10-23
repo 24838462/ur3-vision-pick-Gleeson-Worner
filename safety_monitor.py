@@ -19,7 +19,12 @@ class SafetyStatus(Enum):
     NORMAL = "normal"
     WARNING = "warning"
     INTERRUPT = "interrupt"
+    TRACKING = "tracking"        # Orienting onboard camera and visually servoing to avoid/track intruder
+    JOINT_LIMIT = "joint_limit"  # Joint limit reached while avoiding
+    SAFETY_STOP = "safety_stop"  # Critical safety zone breached (< 0.06m) -> emergency stop
     RETREAT = "retreat"
+    RESUMING = "resuming"        # Smooth return to task trajectory after obstacle clears
+    RECOVERING = "recovering"    # Overhead camera recovery after tracking divergence
 
 
 @dataclass
@@ -30,11 +35,14 @@ class SafetyConfig:
     workspace_y: tuple[float, float] = (-0.28, 0.28)
     workspace_z: tuple[float, float] = (-0.02, 0.45)
 
-    # Minimum distance between intruder and active robot pinch point (metres)
-    critical_distance: float = 0.08
-    warning_distance: float = 0.18
+    # Standoff distance to maintain during visual servoing avoidance (metres)
+    standoff_distance: float = 0.22
 
-    # Number of consecutive Kalman-confirmed frames before raising interrupt
+    # Minimum distance between intruder and active robot pinch point for emergency stop (metres)
+    critical_distance: float = 0.06
+    warning_distance: float = 0.16
+
+    # Number of consecutive Kalman-confirmed frames before raising tracking/interrupt
     persistence_frames: int = 2
 
     # Retraction target (safe home joint angles in radians)
@@ -163,7 +171,7 @@ class InteractiveObstacle:
         self.name = name
         self.body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, name)
         self.active = False
-        self.step_size = 0.02  # metres per keypress
+        self.step_size = 0.025  # metres per keypress
 
         if self.body_id >= 0:
             self.mocap_id = int(model.body_mocapid[self.body_id])
@@ -177,6 +185,7 @@ class InteractiveObstacle:
             self.data.mocap_quat[self.mocap_id] = [1.0, 0.0, 0.0, 0.0]
         self.active = True
         print(f"[Obstacle] Spawned at ({x:.2f}, {y:.2f}, {z:.2f}) m.")
+        print("[Obstacle] Controls: [WASD / Arrows] Move X-Y | [E/C or PgUp/PgDn] Height Z | [Space/P] Despawn")
 
     def despawn(self):
         """Move the obstacle out of view and deactivate."""
@@ -198,50 +207,67 @@ class InteractiveObstacle:
         return None
 
     def handle_key(self, key: int) -> bool:
-        """Handle keyboard input for obstacle spawning and 3D translation."""
-        if key in (ord('s'), ord('S')):
+        """Handle keyboard input for obstacle spawning and 3D translation.
+
+        Controls:
+          Toggle Spawn/Despawn: [Space], [P] (or [S] if inactive)
+          Reset to center:      [R]
+          Move +X (Forward):   [Up Arrow], [W], [I]
+          Move -X (Backward):  [Down Arrow], [S], [K]
+          Move +Y (Left):      [Left Arrow], [A], [J]
+          Move -Y (Right):     [Right Arrow], [D], [L]
+          Move +Z (Up):        [Page Up], [E], [U], [+], [=]
+          Move -Z (Down):      [Page Down], [C], [O], [-], [_]
+        """
+        # Toggle spawn / despawn with Space (32) or 'P' / 'p'
+        if key in (32, ord('p'), ord('P')):
             if self.active:
                 self.despawn()
             else:
                 self.spawn()
             return True
 
-        if key in (ord('r'), ord('R')):
-            if self.active:
-                self.spawn(0.35, 0.0, 0.08)
-                return True
-
+        # If inactive, 'S' / 's' can also spawn
         if not self.active:
+            if key in (ord('s'), ord('S')):
+                self.spawn()
+                return True
             return False
+
+        # Reset to center
+        if key in (ord('r'), ord('R')):
+            self.spawn(0.35, 0.0, 0.08)
+            return True
 
         step = self.step_size
 
-        # Up Arrow / 'i' -> Move +X (forward toward table back)
-        if key in (ord('i'), ord('I'), 0x260000, 2490368, 82, 0):
+        # Move +X (Forward towards table rear)
+        if key in (ord('w'), ord('W'), ord('i'), ord('I'), 0x260000, 2490368, 82, 38, 0):
             self.move(dx=step)
             return True
-        # Down Arrow / 'k' -> Move -X (backward toward robot base)
-        elif key in (ord('k'), ord('K'), 0x280000, 2621440, 84, 1):
+        # Move -X (Backward towards robot base)
+        elif key in (ord('s'), ord('S'), ord('k'), ord('K'), 0x280000, 2621440, 84, 40, 1):
             self.move(dx=-step)
             return True
-        # Left Arrow / 'j' -> Move +Y (left)
-        elif key in (ord('j'), ord('J'), 0x250000, 2424832, 81, 2):
+        # Move +Y (Left)
+        elif key in (ord('a'), ord('A'), ord('j'), ord('J'), 0x250000, 2424832, 81, 37, 2):
             self.move(dy=step)
             return True
-        # Right Arrow / 'l' -> Move -Y (right)
-        elif key in (ord('l'), ord('L'), 0x270000, 2555904, 83, 3):
+        # Move -Y (Right)
+        elif key in (ord('d'), ord('D'), ord('l'), ord('L'), 0x270000, 2555904, 83, 39, 3):
             self.move(dy=-step)
             return True
-        # 'u' -> Move +Z (up)
-        elif key in (ord('u'), ord('U')):
+        # Move +Z (Up in height)
+        elif key in (ord('e'), ord('E'), ord('u'), ord('U'), ord('+'), ord('='), 0x210000, 2162688, 33):
             self.move(dz=step)
             return True
-        # 'o' -> Move -Z (down)
-        elif key in (ord('o'), ord('O')):
+        # Move -Z (Down in height)
+        elif key in (ord('c'), ord('C'), ord('o'), ord('O'), ord('-'), ord('_'), 0x220000, 2228224, 34):
             self.move(dz=-step)
             return True
 
         return False
+
 
 
 class StationarySafetyCamera:
@@ -400,10 +426,10 @@ class StationarySafetyCamera:
         if robot_pinch_pos is not None:
             distance_to_robot = float(np.linalg.norm(intruder_pos - robot_pinch_pos))
             if distance_to_robot < cfg.critical_distance:
-                self.status = SafetyStatus.RETREAT
+                self.status = SafetyStatus.SAFETY_STOP
                 return self.status
             elif distance_to_robot < cfg.warning_distance:
-                self.status = SafetyStatus.INTERRUPT
+                self.status = SafetyStatus.TRACKING
                 return self.status
 
         # Check workspace envelope
@@ -414,7 +440,7 @@ class StationarySafetyCamera:
         )
 
         if inside_envelope:
-            self.status = SafetyStatus.INTERRUPT
+            self.status = SafetyStatus.TRACKING
         else:
             self.status = SafetyStatus.WARNING
 
@@ -427,13 +453,18 @@ class StationarySafetyCamera:
         color_map = {
             SafetyStatus.NORMAL: (0, 200, 0),
             SafetyStatus.WARNING: (0, 220, 255),
+            SafetyStatus.TRACKING: (255, 200, 0),
+            SafetyStatus.JOINT_LIMIT: (0, 165, 255),
+            SafetyStatus.SAFETY_STOP: (0, 0, 255),
             SafetyStatus.INTERRUPT: (0, 0, 255),
             SafetyStatus.RETREAT: (255, 0, 255),
+            SafetyStatus.RECOVERING: (255, 0, 255),
+            SafetyStatus.RESUMING: (0, 165, 255),
         }
         status_color = color_map.get(self.status, (255, 255, 255))
 
         # Status badge background
-        cv2.rectangle(annotated, (6, 6), (230, 28), (30, 30, 30), cv2.FILLED)
+        cv2.rectangle(annotated, (6, 6), (250, 28), (30, 30, 30), cv2.FILLED)
         cv2.putText(
             annotated,
             f"SAFETY: {self.status.value.upper()}",
@@ -465,10 +496,10 @@ class StationarySafetyCamera:
                                cv2.MARKER_CROSS, 14, 1)
 
         # Interactive controls prompt at bottom
-        obs_text = "[S] Despawn Obstacle" if obstacle_active else "[S] Spawn Obstacle"
+        obs_text = "[Space/P] Despawn" if obstacle_active else "[Space/P] Spawn"
         cv2.putText(
             annotated,
-            f"{obs_text} | [IJKL/Arrows] Move | [R] Reset",
+            f"{obs_text} | [WASD/Arrows] X-Y | [E/C or PgUp/Dn] Z",
             (8, annotated.shape[0] - 8),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.32,
@@ -478,3 +509,300 @@ class StationarySafetyCamera:
         )
 
         return annotated
+
+
+def detect_cyan_intruder_wrist(
+    rgb: np.ndarray,
+    depth: np.ndarray,
+    fovy: float = 60.0,
+) -> dict | None:
+    """Detect cyan obstacle from the onboard wrist camera perspective."""
+    if rgb is None or depth is None:
+        return None
+
+    h, w = rgb.shape[:2]
+    focal = h / (2.0 * np.tan(np.deg2rad(fovy) / 2.0))
+    cx = (w - 1) / 2.0
+    cy = (h - 1) / 2.0
+
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    mask = cv2.inRange(hsv, np.array([80, 100, 40], dtype=np.uint8), np.array([100, 255, 255], dtype=np.uint8))
+    kernel = np.ones((3, 3), dtype=np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+
+    contour = max(contours, key=cv2.contourArea)
+    if cv2.contourArea(contour) < 20:
+        return None
+
+    bx, by, bw, bh = cv2.boundingRect(contour)
+    component = np.zeros_like(mask)
+    cv2.drawContours(component, [contour], -1, 255, cv2.FILLED)
+    valid = (component > 0) & np.isfinite(depth) & (depth > 0.04) & (depth < 2.0)
+    rows, cols = np.nonzero(valid)
+    if len(rows) < 10:
+        return None
+
+    u = int(np.median(cols))
+    v = int(np.median(rows))
+    z = float(np.median(depth[rows, cols]))
+
+    # Pinhole reprojection in camera optical frame (X right, Y down, Z forward)
+    x_c = (u - cx) * z / focal
+    y_c = (v - cy) * z / focal
+    pt_cam = np.array([x_c, y_c, z])
+
+    return {
+        "pixel": (u, v),
+        "point_camera": pt_cam,
+        "depth": z,
+        "bbox": (bx, by, bw, bh),
+        "area": float(cv2.contourArea(contour)),
+    }
+
+
+class VisualServoingAvoidanceController:
+    """PBVS-based gaze tracking and distance maintenance/avoidance controller.
+
+    1. Orients the wrist camera optical axis towards the Kalman-tracked obstacle.
+    2. Controls linear velocity along the optical axis to maintain standoff distance (0.22 m).
+    3. Backs up/retreats away when the obstacle is moved closer, and tracks when moved away.
+    4. Enforces joint limits: halts motion in the direction of any breached joint limit.
+    5. Enforces critical safety stop if the intruder breaches the closer critical zone (< 0.06 m).
+    """
+
+    def __init__(
+        self,
+        model: mujoco.MjModel,
+        q_addresses: np.ndarray,
+        v_addresses: np.ndarray,
+        camera_name: str = "wrist_camera",
+        config: SafetyConfig | None = None,
+    ):
+        self.model = model
+        self.q_addresses = np.asarray(q_addresses)
+        self.v_addresses = np.asarray(v_addresses)
+        self.config = config or SafetyConfig()
+        self.camera_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
+        self.camera_body_id = int(model.cam_bodyid[self.camera_id]) if self.camera_id >= 0 else -1
+        self.pinch_site_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "gripper_pinch")
+        self.base_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "base_link")
+
+        # Controller gains and limits
+        self.gain_rot = 2.0
+        self.gain_dist = 1.2
+        self.gain_lat = 0.8
+        self.max_lin_speed = 0.10   # m/s
+        self.max_ang_speed = 0.6    # rad/s
+        self.max_joint_speed = 0.45 # rad/s (~26 deg/s, matching computed-torque arm bandwidth)
+        self.damping = 0.005
+        self.rotation_weight = 0.15
+
+        # Query joint limits
+        from robot_utils import joint_limits
+        self.lower_limits, self.upper_limits = joint_limits(model, self.q_addresses)
+
+        # Safe operational comfort limits in radians (to avoid self-folding, singular contortions, and mesh collisions):
+        # Joints: [pan, shoulder_lift, elbow, wrist_1, wrist_2, wrist_3]
+        self.safe_lower = np.array([-2.60, -2.44,  0.52, -2.79, -2.79, -3.14])  # rad
+        self.safe_upper = np.array([ 2.60, -0.70,  2.62, -0.35, -0.35,  3.14])  # rad
+        # Nominal preferred open posture (elbow flexed naturally, shoulder upright, gripper forward)
+        self.preferred_q = np.array([0.0, -np.pi/2, np.pi/2, -np.pi/2, -np.pi/2, 0.0])
+        self.k_null_posture = 1.2
+        self.k_null_repulse = 0.8
+
+        self.last_rates = np.zeros(6)
+        self.status = SafetyStatus.TRACKING
+        self.telemetry = {}
+
+    def compute_command(
+        self,
+        data: mujoco.MjData,
+        frames,
+        target_pos_base: np.ndarray,
+        current_q: np.ndarray,
+        target_vel_base: np.ndarray | None = None,
+        holding_object: bool = False,
+        held_size: float = 0.04,
+    ) -> tuple[SafetyStatus, np.ndarray, dict]:
+        """Compute visual servoing joint velocity rates to orient and maintain standoff distance."""
+        self.telemetry = {}
+        if target_pos_base is None or not np.all(np.isfinite(target_pos_base)):
+            return SafetyStatus.NORMAL, np.zeros(6), {}
+
+        # Kinematics in base frame
+        cam_pos_base = frames.position_base_camera
+        cam_rot_base = frames.rotation_base_camera  # 3x3 optical frame in base
+        base_rot_w = data.xmat[frames.base_id].reshape(3, 3)
+        base_pos_w = data.xpos[frames.base_id]
+
+        # Vector from camera to target in base frame
+        d_base = target_pos_base - cam_pos_base
+        distance = float(np.linalg.norm(d_base))
+
+        # Vector in camera optical frame (X right, Y down, Z forward along optical axis)
+        p_c = cam_rot_base.T @ d_base
+        z_c = float(p_c[2])
+
+        # Distance to end-effector pinch site
+        if self.pinch_site_id >= 0:
+            pinch_pos_base = base_rot_w.T @ (data.site_xpos[self.pinch_site_id] - base_pos_w)
+            dist_to_pinch = float(np.linalg.norm(target_pos_base - pinch_pos_base))
+        else:
+            dist_to_pinch = distance
+
+        # Check CLOSER CRITICAL SAFETY STOP:
+        # Expand critical stop distance if a cube is being held to protect the cube
+        effective_critical = self.config.critical_distance + (held_size * 0.5 if holding_object else 0.0)
+
+        if dist_to_pinch < effective_critical or distance < effective_critical:
+            self.status = SafetyStatus.SAFETY_STOP
+            self.telemetry = {
+                "distance": distance,
+                "pinch_distance": dist_to_pinch,
+                "standoff_error": z_c - self.config.standoff_distance,
+                "orientation_error": 0.0,
+                "joint_limit_breached": False,
+                "rates": np.zeros(6),
+                "holding_object": holding_object,
+            }
+            return self.status, np.zeros(6), self.telemetry
+
+
+        # 1. Orientation Error (Gaze Tracking):
+        # Align camera optical axis [0, 0, 1] with line of sight u_dir = p_c / ||p_c||
+        u_dir = p_c / max(1e-4, distance)
+        e_rot = np.array([-u_dir[1], u_dir[0], 0.0])
+        ang_error = float(np.linalg.norm(e_rot))
+        omega = self.gain_rot * e_rot
+
+        # 2. Distance Maintenance & Avoidance:
+        # Maintain self.config.standoff_distance (0.22 m)
+        dist_err = z_c - self.config.standoff_distance
+        vz = self.gain_dist * dist_err
+        vx = self.gain_lat * p_c[0]
+        vy = self.gain_lat * p_c[1]
+
+        v_lin = np.array([vx, vy, vz])
+
+        # Twist scaling to enforce smooth maximum speeds
+        scale = max(
+            1.0,
+            np.linalg.norm(v_lin) / self.max_lin_speed,
+            np.linalg.norm(omega) / self.max_ang_speed,
+        )
+        v_lin /= scale
+        omega /= scale
+        twist = np.r_[v_lin, omega]
+
+        # 3. Geometric Jacobian computation at camera frame
+        jac_p = np.zeros((3, self.model.nv))
+        jac_r = np.zeros((3, self.model.nv))
+        mujoco.mj_jac(
+            self.model,
+            data,
+            jac_p,
+            jac_r,
+            data.cam_xpos[self.camera_id],
+            self.camera_body_id,
+        )
+
+        w_to_opt = (base_rot_w @ cam_rot_base).T
+        jac_lin = w_to_opt @ jac_p[:, self.v_addresses]
+        jac_ang = w_to_opt @ jac_r[:, self.v_addresses]
+
+        # 5-DOF Task Jacobian: 3 linear (vx, vy, vz) + 2 angular (pitch & yaw).
+        # Roll (wz) around the camera optical axis does NOT affect gaze tracking.
+        # Leaving wz unconstrained unlocks 1 kinematic redundant DOF for nullspace posture optimization!
+        task_jac = np.vstack((
+            jac_lin,
+            self.rotation_weight * jac_ang[:2, :],
+        ))
+        task_twist = np.r_[
+            v_lin,
+            self.rotation_weight * omega[:2],
+        ]
+
+        # 4. Weighted Damped Least Squares (WDLS) for proactive joint limit avoidance:
+        # As any joint approaches safe comfort bounds, penalize its motion so other joints take over
+        weights = np.ones(6)
+        buffer = np.deg2rad(15.0)  # 15 degrees boundary buffer
+        for j in range(6):
+            dist_low = current_q[j] - self.safe_lower[j]
+            dist_high = self.safe_upper[j] - current_q[j]
+            min_dist = min(dist_low, dist_high)
+            if min_dist < buffer:
+                ratio = max(0.01, min_dist / buffer)
+                weights[j] = 1.0 + (1.0 / (ratio ** 2))
+
+        W_inv = np.diag(1.0 / weights)
+        JWJt = task_jac @ W_inv @ task_jac.T + (self.damping ** 2) * np.eye(5)
+        task_pinv = W_inv @ task_jac.T @ np.linalg.solve(JWJt, np.eye(5))
+
+        rates_task = task_pinv @ task_twist
+
+        # 5. Nullspace Posture Optimization:
+        # Nullspace projector: N = I - J_pinv @ J (orthogonal to primary camera task)
+        N_null = np.eye(6) - task_pinv @ task_jac
+
+        # a) Posture tracking: Align base pan with obstacle azimuth so the arm faces the intruder head-on
+        target_pan = np.arctan2(target_pos_base[1], target_pos_base[0])
+        pref_q = self.preferred_q.copy()
+        pref_q[0] = np.clip(target_pan, self.safe_lower[0], self.safe_upper[0])
+
+        q_err = pref_q - current_q
+        q_null_posture = self.k_null_posture * q_err
+
+        # b) Anti-folding repulsion from safe boundaries (keeps elbow bent upright, prevents self-collisions)
+        q_null_repulse = np.zeros(6)
+        for j in range(6):
+            mid = 0.5 * (self.safe_lower[j] + self.safe_upper[j])
+            span = 0.5 * (self.safe_upper[j] - self.safe_lower[j])
+            norm_q = (current_q[j] - mid) / max(0.1, span)
+            if abs(norm_q) > 0.65:
+                direction = -np.sign(norm_q)
+                severity = (abs(norm_q) - 0.65) / 0.35
+                q_null_repulse[j] = direction * self.k_null_repulse * (severity ** 2)
+
+        q_null_total = q_null_posture + q_null_repulse
+
+        # Combined rates: primary task + nullspace secondary posture
+        rates = rates_task + N_null @ q_null_total
+
+        # Normalize to maximum joint speed
+        max_rate = np.max(np.abs(rates))
+        if max_rate > self.max_joint_speed:
+            rates = (rates / max_rate) * self.max_joint_speed
+
+        # 6. Hard Limits Check & Clamping:
+        joint_limit_breached = False
+        hard_margin = 0.02  # ~1.1 degrees
+        for j in range(6):
+            if current_q[j] <= self.lower_limits[j] + hard_margin and rates[j] < 0:
+                rates[j] = 0.0
+                joint_limit_breached = True
+            elif current_q[j] >= self.upper_limits[j] - hard_margin and rates[j] > 0:
+                rates[j] = 0.0
+                joint_limit_breached = True
+
+        if joint_limit_breached:
+            self.status = SafetyStatus.JOINT_LIMIT
+        else:
+            self.status = SafetyStatus.TRACKING
+
+        self.last_rates = rates.copy()
+        self.telemetry = {
+            "distance": distance,
+            "pinch_distance": dist_to_pinch,
+            "standoff_error": dist_err,
+            "orientation_error": ang_error,
+            "joint_limit_breached": joint_limit_breached,
+            "rates": rates.copy(),
+            "target_cam": p_c.copy(),
+        }
+
+        return self.status, rates, self.telemetry
+
