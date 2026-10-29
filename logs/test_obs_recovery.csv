@@ -1,0 +1,1 @@
+time_s,joint,encoder_noisy_rad,q_est_rad,qd_est_rad_s,q_true_rad,qd_true_rad_s,q_error_rad,qd_error_rad_s,q_std_rad,qd_std_rad_s,nis,commanded_acceleration_rad_s2

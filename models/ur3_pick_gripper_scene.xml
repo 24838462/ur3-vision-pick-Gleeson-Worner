@@ -6,6 +6,7 @@
   </visual>
   <worldbody>
     <light name="scene_light" pos="0.3 -0.3 1.5" dir="0 0 -1" directional="true" />
+    <camera name="safety_camera" pos="0.3 0 0.85" quat="1 0 0 0" fovy="60" />
     <geom name="floor" type="plane" pos="0 0 -0.75" size="2 2 0.1" rgba="0.25 0.25 0.28 1" contype="1" conaffinity="1" />
     <geom name="table_top" type="box" pos="0.25 0 -0.04" size="0.55 0.45 0.03" rgba="0.65 0.58 0.45 1" contype="1" conaffinity="1" />
     <body name="target_cube" pos="0.30 0.10 0.01">

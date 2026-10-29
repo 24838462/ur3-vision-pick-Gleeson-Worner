@@ -12,6 +12,14 @@ from observation import WorkspaceScanner
 from stacking import stack_cubes
 from estimation import ObserverMonitor
 from torque_controller import ComputedTorqueController
+from safety_monitor import (
+    StationarySafetyCamera,
+    InteractiveObstacle,
+    SafetyStatus,
+    ObjectTrackingKalmanFilter,
+    VisualServoingAvoidanceController,
+    detect_cyan_intruder_wrist,
+)
 from vision import (
     CubeDetector,
     CameraFrames,
@@ -35,35 +43,125 @@ CAMERA_WIDTH = 320
 CAMERA_HEIGHT = 240
 CAMERA_FPS = 15
 
-def display(rgb, depth, status):
-    colour = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+def depth_to_colormap(depth):
     valid = np.isfinite(depth) & (depth > 0)
     safe_depth = np.where(valid, depth, 1.0)
     scaled = np.clip((safe_depth - 0.05) / 0.95, 0.0, 1.0)
     panel = cv2.applyColorMap(((1 - scaled) * 255).astype(np.uint8), cv2.COLORMAP_TURBO)
     panel[~valid] = 0
-    for image, title in ((colour, 'RGB'), (panel, 'Depth: near = warm')):
+    return panel
+
+def display_dashboard(
+    wrist_rgb,
+    wrist_depth,
+    wrist_status,
+    safety_rgb,
+    safety_depth,
+    safety_camera,
+    obstacle_active,
+    wrist_det=None,
+    servo_telemetry=None,
+    safety_status=SafetyStatus.NORMAL,
+    wrist_kf=None,
+):
+    # Top row: Wrist Camera RGB + Depth
+    colour = cv2.cvtColor(wrist_rgb, cv2.COLOR_RGB2BGR)
+    wrist_panel = depth_to_colormap(wrist_depth)
+
+    # Annotate cyan obstacle detected in wrist camera
+    if wrist_det is not None:
+        bx, by, bw, bh = wrist_det['bbox']
+        u, v = wrist_det['pixel']
+        cv2.rectangle(colour, (bx, by), (bx + bw, by + bh), (255, 255, 0), 2)
+        cv2.circle(colour, (u, v), 4, (0, 255, 255), -1)
         cv2.putText(
-            image,
-            title,
-            (8, 20),
+            colour,
+            f"Obstacle: {wrist_det['depth']:.3f} m",
+            (bx, max(16, by - 6)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.45,
-            (255, 255, 255),
+            0.42,
+            (255, 255, 0),
             1,
             cv2.LINE_AA,
         )
+
+    # Header and status bar on wrist camera
+    if safety_status == SafetyStatus.SAFETY_STOP:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (0, 0, 220), cv2.FILLED)
+        cv2.putText(colour, "SAFETY STOP (< 0.06m) - EMERGENCY HALT", (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 2, cv2.LINE_AA)
+    elif safety_status == SafetyStatus.JOINT_LIMIT:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (0, 140, 255), cv2.FILLED)
+        cv2.putText(colour, "WARNING: JOINT LIMIT REACHED - CLAMPED", (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 2, cv2.LINE_AA)
+    elif safety_status == SafetyStatus.TRACKING:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (80, 80, 0), cv2.FILLED)
+        cv2.putText(colour, "VISUAL SERVOING: AVOIDING & TRACKING", (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    elif safety_status == SafetyStatus.RESUMING:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (150, 100, 0), cv2.FILLED)
+        cv2.putText(colour, "RETURNING TO TASK (SMOOTH RESUME)", (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    elif safety_status == SafetyStatus.RECOVERING:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (180, 0, 180), cv2.FILLED)
+        cv2.putText(colour, "OVERHEAD CAM RECOVERY (RE-ALIGNING)", (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 1, cv2.LINE_AA)
+    else:
+        cv2.putText(colour, 'Wrist Camera (PBVS)', (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
+
+    # Telemetry and Kalman Filter overlay on wrist camera
+    if safety_status in (SafetyStatus.TRACKING, SafetyStatus.JOINT_LIMIT, SafetyStatus.SAFETY_STOP):
+        if servo_telemetry:
+            dist = servo_telemetry.get('distance', 0.0)
+            err = servo_telemetry.get('standoff_error', 0.0)
+            cv2.putText(
+                colour,
+                f"Dist: {dist:.3f}m | Standoff: 0.220m | Err: {err:+.3f}m",
+                (8, 42),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.36,
+                (0, 255, 255),
+                1,
+                cv2.LINE_AA,
+            )
+        if wrist_kf and wrist_kf.tracking:
+            pos = np.round(wrist_kf.position, 2)
+            vel = np.round(wrist_kf.velocity, 2)
+            cv2.putText(
+                colour,
+                f"Wrist KF: Pos {pos} Vel {vel}",
+                (8, 56),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.34,
+                (255, 200, 100),
+                1,
+                cv2.LINE_AA,
+            )
+    else:
+        cv2.putText(colour, wrist_status, (8, colour.shape[0] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1, cv2.LINE_AA)
+
+    cv2.putText(wrist_panel, 'Wrist Depth: near = warm', (8, 20),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1, cv2.LINE_AA)
+    wrist_row = np.hstack((colour, wrist_panel))
+
+    # Bottom row: Overhead Safety Camera (Annotated RGB with HUD) + Depth
+    safety_annotated = safety_camera.annotate_view(safety_rgb, safety_depth, obstacle_active)
+    safety_panel = depth_to_colormap(safety_depth)
     cv2.putText(
-        colour,
-        status,
-        (8, colour.shape[0] - 10),
+        safety_panel,
+        'Overhead Safety Depth',
+        (8, 20),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.35,
+        0.45,
         (255, 255, 255),
         1,
         cv2.LINE_AA,
     )
-    return np.hstack((colour, panel))
+    safety_row = np.hstack((safety_annotated, safety_panel))
+
+    return np.vstack((wrist_row, safety_row))
 
 def create_scene(seed):
     """Initialise only; spawn positions are not passed to the task."""
@@ -100,12 +198,12 @@ def create_scene(seed):
     mujoco.mj_forward(model, data)
     return (model, data, q_addresses, v_addresses, motors, gripper, camera, home)
 
-def render_rgbd(renderer, data, options):
+def render_rgbd(renderer, data, options, camera_name='wrist_camera'):
     renderer.disable_depth_rendering()
-    renderer.update_scene(data, camera='wrist_camera', scene_option=options)
+    renderer.update_scene(data, camera=camera_name, scene_option=options)
     rgb = renderer.render().copy()
     renderer.enable_depth_rendering()
-    renderer.update_scene(data, camera='wrist_camera', scene_option=options)
+    renderer.update_scene(data, camera=camera_name, scene_option=options)
     depth = renderer.render().copy()
     renderer.disable_depth_rendering()
     return (rgb, depth)
@@ -159,6 +257,34 @@ def run_scene(seed):
     print('PBVS controls pickup and placement alignment; placement lowering uses a trajectory.')
     print('Press Q in the camera window to exit.')
     print('PBVS log:', log_path)
+    # Stationary safety camera & interactive test obstacle
+    safety_camera = StationarySafetyCamera(
+        model,
+        camera_name="safety_camera",
+        width=CAMERA_WIDTH,
+        height=CAMERA_HEIGHT,
+    )
+    obstacle = InteractiveObstacle(model, data, name="obstacle")
+    pinch_site = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "gripper_pinch")
+    safety_status = SafetyStatus.NORMAL
+    last_safety_status = SafetyStatus.NORMAL
+
+    # Dedicated wrist visual Kalman filter & avoidance visual servoing controller
+    wrist_kf = ObjectTrackingKalmanFilter(position_std=0.004, acceleration_std=2.0)
+    servo_controller = VisualServoingAvoidanceController(
+        model,
+        q_addresses,
+        v_addresses,
+        camera_name="wrist_camera",
+        config=safety_camera.config,
+    )
+    servo_rates = np.zeros(6)
+    servo_telemetry = {}
+    wrist_intruder_det = None
+    last_task_q = home.copy()
+    last_task_grip = 0.0
+    resume_target_q = home.copy()
+
     try:
         with log_path.open("w", newline="") as log_file, ObserverMonitor(
             observer_path, JOINT_NAMES, seed
@@ -175,7 +301,7 @@ def run_scene(seed):
                 'converged',
             ])
             cv2.namedWindow(window, cv2.WINDOW_NORMAL)
-            cv2.resizeWindow(window, 2 * CAMERA_WIDTH, CAMERA_HEIGHT)
+            cv2.resizeWindow(window, 2 * CAMERA_WIDTH, 2 * CAMERA_HEIGHT)
             with mujoco.Renderer(model, height=CAMERA_HEIGHT, width=CAMERA_WIDTH) as renderer:
                 with mujoco.viewer.launch_passive(model, data) as viewer:
                     with viewer.lock():
@@ -186,33 +312,91 @@ def run_scene(seed):
                         wall_start = time.perf_counter()
                         if not frozen:
                             for _ in range(steps_per_frame):
-                                active = (
-                                    task
-                                    if task is not None
-                                    else search
-                                )
-
-                                if active is not None:
-                                    try:
-                                        desired_q, desired_qd, grip = next(active)
-
-                                    except StopIteration:
+                                if safety_status == SafetyStatus.SAFETY_STOP:
+                                    # Smoothly decelerate to zero
+                                    d_rate = -desired_qd
+                                    desired_qd += np.clip(d_rate, -2.0 * dt, 2.0 * dt)
+                                    desired_q += desired_qd * dt
+                                elif safety_status in (SafetyStatus.TRACKING, SafetyStatus.JOINT_LIMIT):
+                                    # Slew rate limit acceleration to 1.5 rad/s^2 to match computed torque motor bandwidth
+                                    d_rate = servo_rates - desired_qd
+                                    desired_qd += np.clip(d_rate, -1.5 * dt, 1.5 * dt)
+                                    desired_q += desired_qd * dt
+                                    desired_q = np.clip(desired_q, servo_controller.lower_limits, servo_controller.upper_limits)
+                                elif safety_status == SafetyStatus.RECOVERING:
+                                    # Overhead recovery: smoothly hold current joint pose
+                                    d_rate = -desired_qd
+                                    desired_qd += np.clip(d_rate, -2.0 * dt, 2.0 * dt)
+                                    desired_q += desired_qd * dt
+                                elif safety_status == SafetyStatus.RESUMING:
+                                    # Smoothly interpolate desired_q from current arm position back to resume_target_q
+                                    error = resume_target_q - desired_q
+                                    dist = float(np.linalg.norm(error))
+                                    if dist > 0.002:
+                                        max_step = np.deg2rad(20.0) * dt
+                                        step = min(dist, max_step)
+                                        desired_qd = (error / dist) * (step / dt)
+                                        desired_q += desired_qd * dt
+                                    else:
                                         desired_qd = np.zeros(6)
+                                        desired_q = resume_target_q.copy()
+                                        safety_status = SafetyStatus.NORMAL
+                                        if feedback.get('servo') is not None:
+                                            feedback['servo'].last_seen = data.time
+                                        print("[Safety Net] Smooth return complete: Task resumed.")
+                                elif safety_status == SafetyStatus.RETREAT:
+                                    desired_qd = np.zeros(6)
+                                    error_to_home = home - desired_q
+                                    dist = np.linalg.norm(error_to_home)
+                                    if dist > 1e-4:
+                                        desired_q += (error_to_home / dist) * min(0.003, dist)
+                                elif safety_status == SafetyStatus.INTERRUPT:
+                                    desired_qd = np.zeros(6)
+                                else:
+                                    active = (
+                                        task
+                                        if task is not None
+                                        else search
+                                    )
 
-                                        if task is not None:
-                                            frozen = True
-                                            break
+                                    if active is not None:
+                                        try:
+                                            desired_q, desired_qd, grip = next(active)
+                                            last_task_q = desired_q.copy()
+                                            last_task_grip = grip
 
-                                        search = None
+                                        except StopIteration:
+                                            desired_qd = np.zeros(6)
 
-                                    except (
-                                        RuntimeError,
-                                        ValueError,
-                                        np.linalg.LinAlgError,
-                                    ) as error:
-                                        frozen = True
-                                        print("STOPPED:", error)
-                                        break
+                                            if task is not None:
+                                                frozen = True
+                                                break
+
+                                            search = None
+
+                                        except (
+                                            RuntimeError,
+                                            ValueError,
+                                            np.linalg.LinAlgError,
+                                        ) as error:
+                                            if (
+                                                obstacle.active
+                                                or safety_status != SafetyStatus.NORMAL
+                                                or "tracking margin" in str(error)
+                                                or "joint-limit" in str(error)
+                                                or "target measurement lost" in str(error)
+                                            ):
+                                                print(f"[Safety Net] Task tracking divergence caught ({error}) -> Engaging Overhead Camera Recovery!")
+                                                desired_q = data.qpos[q_addresses].copy()
+                                                desired_qd = np.zeros(6)
+                                                if arm_controller is not None and hasattr(arm_controller, 'feedback'):
+                                                    arm_controller.feedback.integral_error[:] = 0.0
+                                                safety_status = SafetyStatus.RECOVERING
+                                                break
+                                            else:
+                                                frozen = True
+                                                print("STOPPED:", error)
+                                                break
 
                                 # Arm control: LQR computed torque or
                                 # the existing PD controller.
@@ -294,30 +478,19 @@ def run_scene(seed):
                                     not np.all(np.isfinite(data.qpos))
                                     or not np.all(np.isfinite(data.qvel))
                                     or not np.all(np.isfinite(error_deg))
-                                    or np.max(np.abs(error_deg)) > 10
                                 ):
                                     frozen = True
-                                    print(
-                                        "Tracking errors (deg):",
-                                        np.round(error_deg, 3),
-                                    )
-                                    print(
-                                        "Joint velocities (rad/s):",
-                                        np.round(
-                                            data.qvel[v_addresses], 4
-                                        ),
-                                    )
-                                    print(
-                                        "State finite:",
-                                        bool(
-                                            np.all(np.isfinite(data.qpos))
-                                            and np.all(np.isfinite(data.qvel))
-                                        ),
-                                    )
-                                    print(
-                                        "STOPPED: tracking error "
-                                        "or invalid state."
-                                    )
+                                    print("STOPPED: invalid numerical state (NaN/Inf).")
+                                    break
+                                elif np.max(np.abs(error_deg)) > 8.0:
+                                    # Do NOT freeze! Recover dynamically using the secondary overhead camera!
+                                    print(f"[Safety Net] Joint divergence ({np.max(np.abs(error_deg)):.1f} deg) detected -> Engaging Overhead Camera Recovery!")
+                                    desired_q = data.qpos[q_addresses].copy()
+                                    desired_qd = np.zeros(6)
+                                    if arm_controller is not None and hasattr(arm_controller, 'feedback'):
+                                        arm_controller.feedback.integral_error[:] = 0.0
+                                    safety_status = SafetyStatus.RECOVERING
+                                    servo_rates = np.zeros(6)
                                     break
 
                         # Refresh sensors at the current state.
@@ -336,9 +509,106 @@ def run_scene(seed):
                             )
 
                         viewer.sync()
-                        rgb, depth = render_rgbd(renderer, data, options)
+                        rgb, depth = render_rgbd(renderer, data, options, camera_name='wrist_camera')
                         annotated, detections = detector.detect(rgb, depth)
+                        safety_rgb, safety_depth = render_rgbd(renderer, data, options, camera_name='safety_camera')
+                        pinch_pos = data.site_xpos[pinch_site].copy() if pinch_site >= 0 else None
+                        known_cubes = [r['centre_base'] for r in records.values()] if records else None
+
+                        # 1. Update stationary overhead safety camera & overhead Kalman filter
+                        safety_camera.update(
+                            safety_rgb,
+                            safety_depth,
+                            data,
+                            now=data.time,
+                            robot_pinch_pos=pinch_pos,
+                        )
+
+                        # 2. Update onboard wrist camera intruder detector & wrist Kalman filter
                         frames.update(data.sensordata)
+                        wrist_intruder_det = detect_cyan_intruder_wrist(rgb, depth, fovy=float(model.cam_fovy[camera]))
+
+                        if wrist_intruder_det is not None:
+                            pt_cam = wrist_intruder_det['point_camera']
+                            pt_base = frames.points_to_base(pt_cam.reshape(1, 3))[0]
+                            wrist_kf.update(pt_base, data.time)
+                        else:
+                            if safety_camera.filter.tracking and safety_camera.filter.confirmed_frames >= 1:
+                                if not wrist_kf.tracking:
+                                    wrist_kf.update(safety_camera.filter.position, data.time)
+                                else:
+                                    wrist_kf.predict(1.0 / CAMERA_FPS)
+                            else:
+                                wrist_kf.mark_missed()
+
+                        # Check if holding an object (cube grasped)
+                        is_holding = (grip > 0.01) or (feedback.get('servo') is not None and getattr(feedback['servo'], 'placing', False))
+                        held_size = feedback['servo'].held_size if (is_holding and feedback.get('servo') is not None and getattr(feedback['servo'], 'held_size', None) is not None) else 0.04
+
+                        # 3. Active intruder tracking, overhead camera recovery, and avoidance visual servoing
+                        if safety_status == SafetyStatus.RECOVERING:
+                            # Re-synchronize joint reference from physical robot
+                            desired_q = data.qpos[q_addresses].copy()
+                            desired_qd = np.zeros(6)
+                            if obstacle.active and safety_camera.filter.tracking and safety_camera.filter.confirmed_frames >= 1:
+                                target_pos_base = safety_camera.filter.position
+                                target_vel_base = safety_camera.filter.velocity
+                                servo_status, rates, servo_telemetry = servo_controller.compute_command(
+                                    data,
+                                    frames,
+                                    target_pos_base,
+                                    desired_q,
+                                    target_vel_base,
+                                    holding_object=is_holding,
+                                    held_size=held_size,
+                                )
+                                servo_rates = np.clip(rates, -0.3, 0.3)
+                                safety_status = SafetyStatus.TRACKING
+                                print("[Safety Net] Overhead camera successfully re-acquired obstacle and restored visual tracking!")
+                            else:
+                                safety_status = SafetyStatus.RESUMING
+                                resume_target_q = last_task_q.copy()
+                                servo_rates = np.zeros(6)
+                                print("[Safety Net] Overhead camera confirmed workspace clear: Resuming task!")
+                        elif obstacle.active and safety_camera.filter.tracking and safety_camera.filter.confirmed_frames >= safety_camera.config.persistence_frames:
+                            if wrist_kf.tracking and wrist_kf.confirmed_frames >= 1:
+                                target_pos_base = wrist_kf.position
+                                target_vel_base = wrist_kf.velocity
+                            else:
+                                target_pos_base = safety_camera.filter.position
+                                target_vel_base = safety_camera.filter.velocity
+
+                            if safety_status in (SafetyStatus.NORMAL, SafetyStatus.RESUMING, SafetyStatus.WARNING):
+                                # Synchronize desired_q on first entering tracking so initial error is 0.0
+                                desired_q = data.qpos[q_addresses].copy()
+                                desired_qd = np.zeros(6)
+
+                            servo_status, rates, servo_telemetry = servo_controller.compute_command(
+                                data,
+                                frames,
+                                target_pos_base,
+                                desired_q,
+                                target_vel_base,
+                                holding_object=is_holding,
+                                held_size=held_size,
+                            )
+                            safety_status = servo_status
+                            servo_rates = rates
+                        else:
+                            if safety_status in (SafetyStatus.TRACKING, SafetyStatus.JOINT_LIMIT, SafetyStatus.SAFETY_STOP):
+                                safety_status = SafetyStatus.RESUMING
+                                resume_target_q = last_task_q.copy()
+                                desired_q = data.qpos[q_addresses].copy()
+                                desired_qd = np.zeros(6)
+                                safety_camera.filter.reset()
+                                wrist_kf.reset()
+                                servo_rates = np.zeros(6)
+                                servo_telemetry = {}
+                                print(f"[Safety Net] Obstacle cleared: Initiating smooth return trajectory to task waypoint...")
+
+                        if safety_status != last_safety_status:
+                            print(f"[Safety Net] Status transition: {last_safety_status.value.upper()} -> {safety_status.value.upper()}")
+                            last_safety_status = safety_status
                         measurements = {}
                         for name in CUBE_NAMES:
                             if name not in detections:
@@ -488,18 +758,47 @@ def run_scene(seed):
                                     '; purple:',
                                     placement is not None,
                                 )
-                        if frozen:
-                            status = 'Paused'
+                        if safety_status == SafetyStatus.SAFETY_STOP:
+                            display_status = "SAFETY STOP (< 0.06m)"
+                        elif safety_status == SafetyStatus.JOINT_LIMIT:
+                            display_status = "JOINT LIMIT REACHED"
+                        elif safety_status == SafetyStatus.TRACKING:
+                            display_status = "TRACKING & AVOIDING"
+                        elif safety_status == SafetyStatus.RESUMING:
+                            display_status = "RESUMING TASK"
+                        elif safety_status == SafetyStatus.RECOVERING:
+                            display_status = "OVERHEAD RECOVERY"
+                        elif safety_status in (SafetyStatus.INTERRUPT, SafetyStatus.RETREAT):
+                            display_status = f"INTERRUPTED ({safety_status.value.upper()})"
+                        elif frozen:
+                            display_status = 'Paused'
                         elif task is None:
-                            status = scanner.status
+                            display_status = scanner.status
                         elif feedback['servo'] is not None:
-                            status = feedback['servo'].phase
+                            display_status = feedback['servo'].phase
                         else:
-                            status = feedback['mode']
-                        cv2.imshow(window, display(annotated, depth, status))
-                        key = cv2.waitKey(1) & 255
-                        if key == ord('q'):
-                            break
+                            display_status = feedback['mode']
+                        cv2.imshow(
+                            window,
+                            display_dashboard(
+                                annotated,
+                                depth,
+                                display_status,
+                                safety_rgb,
+                                safety_depth,
+                                safety_camera,
+                                obstacle.active,
+                                wrist_det=wrist_intruder_det,
+                                servo_telemetry=servo_telemetry,
+                                safety_status=safety_status,
+                                wrist_kf=wrist_kf,
+                            ),
+                        )
+                        key = cv2.waitKeyEx(1)
+                        if key != -1:
+                            if (key & 255) == ord('q'):
+                                break
+                            obstacle.handle_key(key)
                         if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:
                             break
                         remaining = steps_per_frame * dt - (time.perf_counter() - wall_start)
