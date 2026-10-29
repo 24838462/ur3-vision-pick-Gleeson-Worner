@@ -18,6 +18,7 @@ from safety_monitor import (
     SafetyStatus,
     ObjectTrackingKalmanFilter,
     VisualServoingAvoidanceController,
+    CubeCarrySafetySupervisor,
     detect_cyan_intruder_wrist,
 )
 from vision import (
@@ -86,7 +87,11 @@ def display_dashboard(
         )
 
     # Header and status bar on wrist camera
-    if safety_status == SafetyStatus.SAFETY_STOP:
+    if safety_status == SafetyStatus.HOLDING_SAFETY_STOP:
+        cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (0, 0, 220), cv2.FILLED)
+        cv2.putText(colour, 'CUBE HELD: ARM PAUSED', (8, 20),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 2, cv2.LINE_AA)
+    elif safety_status == SafetyStatus.SAFETY_STOP:
         cv2.rectangle(colour, (4, 4), (colour.shape[1] - 4, 26), (0, 0, 220), cv2.FILLED)
         cv2.putText(colour, "SAFETY STOP (< 0.06m) - EMERGENCY HALT", (8, 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, (255, 255, 255), 2, cv2.LINE_AA)
@@ -265,6 +270,11 @@ def run_scene(seed):
         height=CAMERA_HEIGHT,
     )
     obstacle = InteractiveObstacle(model, data, name="obstacle")
+    # Cube-carrying safety supervisor.
+    # Shares the same workspace boundaries as the overhead camera.
+    carry_supervisor = CubeCarrySafetySupervisor(
+        config=safety_camera.config
+    )
     pinch_site = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_SITE, "gripper_pinch")
     safety_status = SafetyStatus.NORMAL
     last_safety_status = SafetyStatus.NORMAL
@@ -284,6 +294,8 @@ def run_scene(seed):
     last_task_q = home.copy()
     last_task_grip = 0.0
     resume_target_q = home.copy()
+    carry_hold = False
+    carry_hold_q = None
 
     try:
         with log_path.open("w", newline="") as log_file, ObserverMonitor(
@@ -312,7 +324,11 @@ def run_scene(seed):
                         wall_start = time.perf_counter()
                         if not frozen:
                             for _ in range(steps_per_frame):
-                                if safety_status == SafetyStatus.SAFETY_STOP:
+                                if carry_hold:
+                                    # Pause the task generator; hold the measured arm pose.
+                                    desired_q = carry_hold_q.copy()
+                                    desired_qd = np.zeros(6)
+                                elif safety_status == SafetyStatus.SAFETY_STOP:
                                     # Smoothly decelerate to zero
                                     d_rate = -desired_qd
                                     desired_qd += np.clip(d_rate, -2.0 * dt, 2.0 * dt)
@@ -545,8 +561,35 @@ def run_scene(seed):
                         is_holding = (grip > 0.01) or (feedback.get('servo') is not None and getattr(feedback['servo'], 'placing', False))
                         held_size = feedback['servo'].held_size if (is_holding and feedback.get('servo') is not None and getattr(feedback['servo'], 'held_size', None) is not None) else 0.04
 
+                        # Carrying-cube override: no PBVS motion while an intruder is present.
+                        # This is an additive guard; the existing avoidance code below is unchanged.
+                        carry_state = carry_supervisor.update(
+                            safety_camera, is_holding, data.qpos[q_addresses]
+                        )
+                        if carry_supervisor.paused and not carry_hold:
+                            carry_hold = True
+                            carry_hold_q = carry_supervisor.frozen_q.copy()
+                            desired_q = carry_hold_q.copy()
+                            desired_qd = np.zeros(6)
+                            servo_rates = np.zeros(6)
+                            print('[Safety Net] Carrying cube: obstacle detected, holding joint pose.')
+
+                        if carry_hold and carry_supervisor.ready_to_resume:
+                            carry_hold = False
+                            carry_hold_q = None
+                            carry_supervisor.finish_resume()
+                            desired_q = data.qpos[q_addresses].copy()
+                            desired_qd = np.zeros(6)
+                            resume_target_q = last_task_q.copy()
+                            safety_status = SafetyStatus.RESUMING
+                            servo_rates = np.zeros(6)
+                            print('[Safety Net] Carry hold cleared: smooth return to task.')
+
                         # 3. Active intruder tracking, overhead camera recovery, and avoidance visual servoing
-                        if safety_status == SafetyStatus.RECOVERING:
+                        if carry_hold:
+                            safety_status = SafetyStatus.HOLDING_SAFETY_STOP
+                            safety_camera.status = SafetyStatus.HOLDING_SAFETY_STOP
+                        elif safety_status == SafetyStatus.RECOVERING:
                             # Re-synchronize joint reference from physical robot
                             desired_q = data.qpos[q_addresses].copy()
                             desired_qd = np.zeros(6)
@@ -758,7 +801,9 @@ def run_scene(seed):
                                     '; purple:',
                                     placement is not None,
                                 )
-                        if safety_status == SafetyStatus.SAFETY_STOP:
+                        if safety_status == SafetyStatus.HOLDING_SAFETY_STOP:
+                            display_status = 'CUBE HELD - ARM PAUSED'
+                        elif safety_status == SafetyStatus.SAFETY_STOP:
                             display_status = "SAFETY STOP (< 0.06m)"
                         elif safety_status == SafetyStatus.JOINT_LIMIT:
                             display_status = "JOINT LIMIT REACHED"

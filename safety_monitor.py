@@ -22,6 +22,7 @@ class SafetyStatus(Enum):
     TRACKING = "tracking"        # Orienting onboard camera and visually servoing to avoid/track intruder
     JOINT_LIMIT = "joint_limit"  # Joint limit reached while avoiding
     SAFETY_STOP = "safety_stop"  # Critical safety zone breached (< 0.06m) -> emergency stop
+    HOLDING_SAFETY_STOP = "holding_safety_stop"  # Hold current pose while carrying cube
     RETREAT = "retreat"
     RESUMING = "resuming"        # Smooth return to task trajectory after obstacle clears
     RECOVERING = "recovering"    # Overhead camera recovery after tracking divergence
@@ -45,8 +46,83 @@ class SafetyConfig:
     # Number of consecutive Kalman-confirmed frames before raising tracking/interrupt
     persistence_frames: int = 2
 
+    # Consecutive clear frames required before releasing a cube-carrying hold
+    holding_clearance_frames: int = 10
+
     # Retraction target (safe home joint angles in radians)
     safe_joints: tuple[float, ...] = (0.0, -1.5707963, 1.5707963, -1.5707963, -1.5707963, 0.0)
+
+
+class CubeCarrySafetySupervisor:
+    """Latched, camera-driven hold for an arm carrying a cube.
+
+    This class does not directly drive actuators. The main simulation must:
+    - call update() once per processed overhead camera frame;
+    - freeze its trajectory clock while paused;
+    - servo to frozen_q using its normal gravity-compensated joint controller;
+    - preserve the gripper closing/holding command;
+    - blend from frozen_q into its original trajectory before resuming.
+
+    An overhead camera detection inside the configured workspace triggers a
+    hold when holding_object is true. Tracking can continue throughout.
+    """
+
+    def __init__(self, config: SafetyConfig | None = None):
+        self.config = config or SafetyConfig()
+        self.paused = False
+        self.frozen_q: np.ndarray | None = None
+        self.clear_frames = 0
+        self.ready_to_resume = False
+        self.status = SafetyStatus.NORMAL
+
+    def update(
+        self,
+        camera: "StationarySafetyCamera",
+        holding_object: bool,
+        current_q: np.ndarray,
+    ) -> SafetyStatus:
+        """Update after camera.update(), using its confirmed detection state."""
+        confirmed = (
+            camera.filter.tracking
+            and camera.filter.confirmed_frames >= self.config.persistence_frames
+            and camera.status in (
+                SafetyStatus.TRACKING, SafetyStatus.SAFETY_STOP,
+                SafetyStatus.INTERRUPT, SafetyStatus.RETREAT,
+            )
+        )
+        if not self.paused:
+            self.ready_to_resume = False
+            if holding_object and confirmed:
+                self.paused = True
+                self.frozen_q = np.asarray(current_q, dtype=float).copy()
+                self.clear_frames = 0
+                self.status = SafetyStatus.HOLDING_SAFETY_STOP
+            else:
+                self.status = camera.status
+            return self.status
+
+        # Latched hold: do not release just because grasp status flickers.
+        if confirmed:
+            self.clear_frames = 0
+        else:
+            self.clear_frames += 1
+
+        if self.clear_frames >= self.config.holding_clearance_frames:
+            self.ready_to_resume = True
+            self.status = SafetyStatus.RESUMING
+        else:
+            self.status = SafetyStatus.HOLDING_SAFETY_STOP
+        return self.status
+
+    def finish_resume(self) -> None:
+        """Call only once the main controller has smoothly rejoined its path."""
+        if not self.ready_to_resume:
+            raise RuntimeError("Cannot resume until the camera confirms clearance")
+        self.paused = False
+        self.frozen_q = None
+        self.clear_frames = 0
+        self.ready_to_resume = False
+        self.status = SafetyStatus.NORMAL
 
 
 class ObjectTrackingKalmanFilter:
@@ -257,11 +333,11 @@ class InteractiveObstacle:
         elif key in (ord('d'), ord('D'), ord('l'), ord('L'), 0x270000, 2555904, 83, 39, 3):
             self.move(dy=-step)
             return True
-        # Move +Z (Up in height)
+        # Move +Z (Up)
         elif key in (ord('e'), ord('E'), ord('u'), ord('U'), ord('+'), ord('='), 0x210000, 2162688, 33):
             self.move(dz=step)
             return True
-        # Move -Z (Down in height)
+        # Move -Z (Down)
         elif key in (ord('c'), ord('C'), ord('o'), ord('O'), ord('-'), ord('_'), 0x220000, 2228224, 34):
             self.move(dz=-step)
             return True
@@ -456,6 +532,7 @@ class StationarySafetyCamera:
             SafetyStatus.TRACKING: (255, 200, 0),
             SafetyStatus.JOINT_LIMIT: (0, 165, 255),
             SafetyStatus.SAFETY_STOP: (0, 0, 255),
+            SafetyStatus.HOLDING_SAFETY_STOP: (0, 0, 255),
             SafetyStatus.INTERRUPT: (0, 0, 255),
             SafetyStatus.RETREAT: (255, 0, 255),
             SafetyStatus.RECOVERING: (255, 0, 255),
@@ -805,4 +882,3 @@ class VisualServoingAvoidanceController:
         }
 
         return self.status, rates, self.telemetry
-
