@@ -5,7 +5,7 @@ import csv
 import numpy as np
 
 
-ENCODER_NOISE_DEG = 0.05
+ENCODER_NOISE_DEG = 0.20
 
 # Uncertainty in acceleration beyond the nominal command.
 # Increased for the faster filter and unmodelled contact loads.
