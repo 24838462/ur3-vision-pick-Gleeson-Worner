@@ -509,40 +509,39 @@
 
             <div class="video-wrapper">
                 <div class="video-frame-container">
-                    <!-- REPLACE URL BELOW WITH YOUR ACTUAL EMBED LINK (YouTube, Vimeo, or Canvas) -->
-                    <!-- Example: <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe> -->
-                    <div class="video-placeholder">
-                        <svg width="64" height="64" fill="var(--accent-blue)" viewBox="0 0 16 16" style="margin-bottom: 1rem;"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                        <h3 style="color:#fff; margin-bottom: 0.5rem;">5-Minute Demonstration Video</h3>
-                        <p class="placeholder-text">[INSERT YOUTUBE EMBED OR CANVAS VIDEO LINK HERE]</p>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">To embed your video, update the &lt;iframe&gt; src inside docs/index.html</span>
-                    </div>
+                    <iframe 
+                        src="https://www.youtube.com/embed/c2Uq0gsToqM" 
+                        title="UR3 Autonomous Vision-Guided Stacking & State Estimation" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
                 </div>
 
                 <div class="video-chapters">
                     <div class="chapter-item">
-                        <span class="timestamp">0:00 - 0:40</span>
-                        <span class="chapter-title">System Overview & Double Integrator Model</span>
+                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=0s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
+                            <span class="timestamp">0:00</span>
+                            <span class="chapter-title">Chapter 1: Introduction to Simulated Environment</span>
+                        </a>
                     </div>
                     <div class="chapter-item">
-                        <span class="timestamp">0:40 - 1:40</span>
-                        <span class="chapter-title">Workspace Scan & Top-Surface Detection</span>
+                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=130s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
+                            <span class="timestamp">2:10</span>
+                            <span class="chapter-title">Chapter 2: Dynamic Safety System</span>
+                        </a>
                     </div>
                     <div class="chapter-item">
-                        <span class="timestamp">1:40 - 2:45</span>
-                        <span class="chapter-title">6-DOF PBVS Visual Servoing & Stacking</span>
+                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=214s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
+                            <span class="timestamp">3:34</span>
+                            <span class="chapter-title">Chapter 3: Real Robot Live Demo</span>
+                        </a>
                     </div>
                     <div class="chapter-item">
-                        <span class="timestamp">2:45 - 3:45</span>
-                        <span class="chapter-title">Kalman Filter Live GUI: Truth vs Estimate vs 2&sigma;</span>
-                    </div>
-                    <div class="chapter-item">
-                        <span class="timestamp">3:45 - 4:30</span>
-                        <span class="chapter-title">Overhead Safety Intruder Tracking & Carry-Hold</span>
-                    </div>
-                    <div class="chapter-item">
-                        <span class="timestamp">4:30 - 5:00</span>
-                        <span class="chapter-title">High Distinction: Real UR3e Hardware Demo</span>
+                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=250s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
+                            <span class="timestamp">4:10</span>
+                            <span class="chapter-title">Chapter 4: Future Improvements & Discussion</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -974,32 +973,18 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>[Student 1 Full Name]</strong></td>
-                            <td class="placeholder-text">[Student 1 ID]</td>
-                            <td>Modelling & LQI</td>
-                            <td>Derived continuous and discrete double-integrator state-space models; solved discrete ARE for optimal LQI gains; implemented anti-windup clamping.</td>
-                            <td>25%</td>
+                            <td><strong>Flynn Worner</strong></td>
+                            <td style="font-family:var(--font-mono); color:var(--accent-blue);">24783452</td>
+                            <td>Estimation & Live Hardware</td>
+                            <td>Deployed physical UR3e + RealSense D435i + OnRobot RG2 live demo; designed eye-to-hand extrinsic calibration; developed real-time Estimation Plotter HUD; solved RTDE thread starvation (Error C271A1).</td>
+                            <td><strong>50%</strong></td>
                         </tr>
                         <tr>
-                            <td><strong>[Student 2 Full Name]</strong></td>
-                            <td class="placeholder-text">[Student 2 ID]</td>
-                            <td>Perception & Frames</td>
-                            <td>Developed HSV color segmentation and SVD top-surface point cloud slicing; managed coordinate transformations; calibrated eye-to-hand extrinsics.</td>
-                            <td>25%</td>
-                        </tr>
-                        <tr>
-                            <td><strong>[Student 3 Full Name]</strong></td>
-                            <td class="placeholder-text">[Student 3 ID]</td>
-                            <td>Estimation & Hardware</td>
-                            <td>Implemented 6-channel Kalman filter with Joseph form stabilization; developed the real-time Estimation Plotter HUD; deployed the UR3e live hardware demo.</td>
-                            <td>25%</td>
-                        </tr>
-                        <tr>
-                            <td><strong>[Student 4 Full Name]</strong></td>
-                            <td class="placeholder-text">[Student 4 ID]</td>
-                            <td>Safety & Evaluation</td>
-                            <td>Engineered reactive safety net with 3D intruder Kalman tracking; implemented payload carry-hold supervisor; generated multi-seed evaluation logs.</td>
-                            <td>25%</td>
+                            <td><strong>Ryan Gleeson</strong></td>
+                            <td style="font-family:var(--font-mono); color:var(--accent-blue);">24838462</td>
+                            <td>Simulation, Control & Safety</td>
+                            <td>Developed MuJoCo simulation environment; derived double-integrator state-space models; tuned computed-torque LQI & PBVS controllers; implemented reactive safety net with obstacle tracking and payload carry-hold.</td>
+                            <td><strong>50%</strong></td>
                         </tr>
                     </tbody>
                 </table>
