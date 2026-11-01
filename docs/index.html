@@ -966,8 +966,8 @@
                         <tr>
                             <th>Member Name</th>
                             <th>Student ID</th>
-                            <th>Primary Modules</th>
-                            <th>Key Contributions</th>
+                            <th>Primary Focus Areas</th>
+                            <th>Executive Contribution Summary</th>
                             <th>Split</th>
                         </tr>
                     </thead>
@@ -975,19 +975,78 @@
                         <tr>
                             <td><strong>Flynn Worner</strong></td>
                             <td style="font-family:var(--font-mono); color:var(--accent-blue);">24783452</td>
-                            <td>Estimation & Live Hardware</td>
-                            <td>Deployed physical UR3e + RealSense D435i + OnRobot RG2 live demo; designed eye-to-hand extrinsic calibration; developed real-time Estimation Plotter HUD; solved RTDE thread starvation (Error C271A1).</td>
+                            <td>Safety Net, Overhead Vision & Media</td>
+                            <td>Architected overhead camera pipeline & dynamic safety interrupt; engineered 3D visual servo tracking of intruder cube with payload carry-hold; scripted, filmed, and edited 5-min demonstration video; co-authored web documentation.</td>
                             <td><strong>50%</strong></td>
                         </tr>
                         <tr>
                             <td><strong>Ryan Gleeson</strong></td>
                             <td style="font-family:var(--font-mono); color:var(--accent-blue);">24838462</td>
-                            <td>Simulation, Control & Safety</td>
-                            <td>Developed MuJoCo simulation environment; derived double-integrator state-space models; tuned computed-torque LQI & PBVS controllers; implemented reactive safety net with obstacle tracking and payload carry-hold.</td>
+                            <td>Simulation, Wrist Vision & Controls</td>
+                            <td>Established GitHub repository environment; modeled UR3 physics in MuJoCo; derived 12-state double-integrator dynamics & PBH proofs; engineered wrist-camera stacking sequence & block selection logic; co-authored web documentation.</td>
                             <td><strong>50%</strong></td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Detailed Technical Breakdown -->
+            <div class="grid-2" style="margin-top: 2rem;">
+                <!-- Flynn Worner Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Flynn Worner</span>
+                        <span class="tag tag-blue">ID: 24783452 &bull; 50%</span>
+                    </div>
+                    <div style="color:var(--accent-cyan); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.8rem;">
+                        Safety Interrupt, Overhead Vision Tracking & Video Production
+                    </div>
+                    <ul style="color:var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem; line-height: 1.6;">
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Overhead Vision & Safety Interrupt System:</strong> Calibrated overhead RGB-D depth camera in world coordinates ($\mathbf{T}_{cam}^{world}$); implemented continuous workspace surveillance with dual dynamic zones: Caution Envelope ($r_{warn} = 0.45\text{ m}$) enforcing smooth velocity derating, and Hazard Emergency Envelope ($r_{stop} = 0.30\text{ m}$) executing hard trajectory hold.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Visual Servo Tracking of Foreign Intruder:</strong> Engineered 3D Kalman filter tracking ($\mathbf{x} = [x, y, z, \dot{x}, \dot{y}, \dot{z}]^T$) to estimate foreign cube trajectories; integrated reactive state-machine interrupt with payload carry-hold lock, ensuring mechanical grip pressure is maintained and blocks are never dropped during safety halts.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Live Robot Hardware Deployment:</strong> Deployed and tested real-world UR3e manipulator with Intel RealSense D435i and OnRobot RG2 gripper; resolved RTDE socket starvation (UR controller Error C271A1) via asynchronous state buffers; calibrated eye-to-hand transformation matrix.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Video Production & Media Direction:</strong> Scripted, voiced, filmed, and produced the full 5-minute technical demonstration video (<a href="https://youtu.be/c2Uq0gsToqM" target="_blank" style="color:var(--accent-blue);">YouTube Link</a>); created picture-in-picture composites synchronizing MuJoCo 3D motion with the real-time OpenCV Estimation Plotter HUD; indexed all chapter markers.
+                        </li>
+                        <li>
+                            <strong>Landing Page & Technical Report:</strong> Collaborated 50/50 with Ryan on GitHub Pages site architecture, styling tokens, video showcase UI, and technical report writing.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Ryan Gleeson Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Ryan Gleeson</span>
+                        <span class="tag tag-purple">ID: 24838462 &bull; 50%</span>
+                    </div>
+                    <div style="color:var(--accent-purple); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.8rem;">
+                        Simulation, State-Space Modelling & Autonomous Stacking
+                    </div>
+                    <ul style="color:var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem; line-height: 1.6;">
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>GitHub Environment & Project Architecture:</strong> Established repository layout, Git branching strategy (`main` branch `/docs` publishing for GitHub Pages), automated package requirements, and isolated virtual environment configurations.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>MuJoCo Physics Simulation Environment:</strong> Modeled the 6-DOF UR3 robotic manipulator within MuJoCo XML, configuring inertial parameters, mesh collision geoms, joint transmission limits, friction coefficients, and contact solver dynamics with a $2\text{ ms}$ physics timestep.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Mathematical State-Space Formulation:</strong> Derived continuous and discrete 12-state double-integrator dynamics ($\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D}$) with exact matrix exponential zero-order hold discretization at $500\text{ Hz}$; proved full controllability ($\text{rank}(\mathcal{C}) = 12$) and observability ($\text{rank}(\mathcal{O}) = 12$) via PBH rank tests.
+                        </li>
+                        <li style="margin-bottom: 0.6rem;">
+                            <strong>Wrist Camera Stacking & Selection Logic:</strong> Implemented eye-in-hand perception pipeline ($\mathbf{T}_c^{ee}$), automated workspace raster scan trajectories, HSV color-space segmentation, and SVD plane-fitting to extract top-surface normal vectors ($|\hat{n}_z| \ge 0.95$); designed closed-loop 6-DOF PBVS descent to execute precision stacking.
+                        </li>
+                        <li>
+                            <strong>Landing Page & Technical Report:</strong> Collaborated 50/50 with Flynn on GitHub Pages design, responsive CSS stylesheets, MathJax LaTeX equations, and technical validation.
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <div class="card" style="margin-top: 1.5rem;">

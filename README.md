@@ -12,8 +12,8 @@
 
 * **Group Number**: Group 32
 * **Team Members**:
-  * **Flynn Worner** (24783452) — Estimation, Live Hardware Integration, RealSense Calibration & HUD
-  * **Ryan Gleeson** (24838462) — Simulation, State-Space Modelling, LQI/PBVS Control & Safety Net
+  * **Flynn Worner** (24783452) — Safety Net, Overhead Vision Tracking, Video Direction, Live Hardware & Web (50%)
+  * **Ryan Gleeson** (24838462) — Simulation Architecture, State-Space Modelling, Wrist Perception & Stacking, Web (50%)
 * **GitHub Repository**: [https://github.com/24838462/ur3-vision-pick-Gleeson-Worner](https://github.com/24838462/ur3-vision-pick-Gleeson-Worner)
 * **Demo Video Link (5 Minutes)**: [https://youtu.be/c2Uq0gsToqM](https://youtu.be/c2Uq0gsToqM)
   * *Video Chapters*:
@@ -28,8 +28,8 @@
 
 | Member Name | Student ID | Primary Modules / Responsibilities | Relative Contribution (%) |
 | :--- | :--- | :--- | :--- |
-| **Flynn Worner** | 24783452 | Physical UR3e + RealSense D435i + OnRobot RG2 live deployment (`Live Demo/`), eye-to-hand extrinsic calibration, real-time OpenCV Estimation Plotter HUD (`estimation_plotter.py`), RTDE socket thread timing fix. | 50% |
-| **Ryan Gleeson** | 24838462 | MuJoCo simulation environment (`simulation.py`), 6-joint double integrator state-space derivation (`joint_model.py`), computed-torque LQI & PBVS controllers, reactive dynamic safety net with obstacle tracking (`safety_monitor.py`). | 50% |
+| **Flynn Worner** | 24783452 | **Overhead Camera & Safety Supervisor:** Calibrated world-frame overhead sensor ($\mathbf{T}_{cam}^{world}$); implemented dual-boundary safety zones (Caution $r_{warn}=0.45\text{ m}$ velocity derating, Hazard $r_{stop}=0.30\text{ m}$ hard stop).<br>**Visual Servo Intruder Tracking:** Built 3D Kalman tracking ($[x, y, z, \dot{x}, \dot{y}, \dot{z}]^T$) and reactive state interrupt with payload carry-hold lock.<br>**Live Robot Hardware:** Deployed physical UR3e + RealSense D435i + OnRobot RG2 demo, solving RTDE socket starvation (Error C271A1).<br>**Video & Web:** Scripted, recorded, voiced, and edited 5-min demonstration video; 50/50 collaboration on GitHub Pages documentation. | 50% |
+| **Ryan Gleeson** | 24838462 | **GitHub & Infrastructure:** Established repository architecture, branching strategy (`main` branch `/docs` publishing), dependency management, and virtual environment setup.<br>**MuJoCo Simulation Architecture:** Built 6-DOF UR3 physics simulation environment, configuring rigid body dynamics, joint transmissions, friction parameters, contact solver stability ($dt = 2\text{ ms}$), and collision geometries.<br>**Modelling & Control:** Derived 12-state double-integrator state-space models ($\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D}$) with $500\text{ Hz}$ zero-order hold discretization; proved controllability/observability ranks.<br>**Wrist Perception & Stacking:** Developed eye-in-hand perception ($\mathbf{T}_c^{ee}$), automated scan trajectory, HSV color segmentation, SVD top-surface normal extraction ($|\hat{n}_z| \ge 0.95$), and 6-DOF PBVS descent.<br>**Web:** 50/50 collaboration on GitHub Pages documentation. | 50% |
 
 ---
 
