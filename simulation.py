@@ -14,6 +14,7 @@ from robot_utils import JOINT_NAMES, MOTOR_NAMES, get_id
 from observation import WorkspaceScanner
 from stacking import stack_cubes
 from estimation import ObserverMonitor
+from estimation_plotter import EstimationPlotter
 from torque_controller import ComputedTorqueController
 from safety_logger import SafetyLogger
 
@@ -397,7 +398,7 @@ def render_rgbd(
     return rgb, depth
 
 
-def run_scene(seed):
+def run_scene(seed, sim_speed: float = 1.0):
     (
         model,
         data,
@@ -554,6 +555,9 @@ def run_scene(seed):
         ) as log_file, ObserverMonitor(
             observer_path, JOINT_NAMES, seed
         ) as observer, SafetyLogger(safety_path) as safety_log:
+            estimation_plotter = EstimationPlotter(JOINT_NAMES)
+            observer.plotter = estimation_plotter
+
             writer = csv.writer(log_file)
             writer.writerow([
                 "time_s",
@@ -572,6 +576,11 @@ def run_scene(seed):
                 2 * CAMERA_WIDTH,
                 2 * CAMERA_HEIGHT,
             )
+            cv2.moveWindow(window, 30, 60)
+
+            cv2.namedWindow(estimation_plotter.window_name, cv2.WINDOW_AUTOSIZE)
+            cv2.moveWindow(estimation_plotter.window_name, 690, 60)
+            estimation_plotter.sim_speed = sim_speed
 
             with mujoco.Renderer(
                 model,
@@ -1591,14 +1600,39 @@ def run_scene(seed):
                                 wrist_kf=wrist_kf,
                             ),
                         )
+                        cv2.imshow(
+                            estimation_plotter.window_name,
+                            estimation_plotter.render(),
+                        )
 
                         key = cv2.waitKeyEx(1)
 
                         if key != -1:
-                            if (key & 255) == ord("q"):
+                            raw_key = key & 255
+                            if raw_key == ord("q"):
                                 break
 
+                            if raw_key in (ord("+"), ord("=")):
+                                if sim_speed == 0:
+                                    sim_speed = 1.0
+                                else:
+                                    sim_speed = min(5.0, round(sim_speed + 0.5, 1))
+                                estimation_plotter.sim_speed = sim_speed
+                                print(f"[Sim Speed] Increased to {sim_speed:.1f}x")
+                            elif raw_key in (ord("-"), ord("_")):
+                                if sim_speed == 0:
+                                    sim_speed = 3.0
+                                else:
+                                    sim_speed = max(0.5, round(sim_speed - 0.5, 1))
+                                estimation_plotter.sim_speed = sim_speed
+                                print(f"[Sim Speed] Decreased to {sim_speed:.1f}x")
+                            elif raw_key in (ord("f"), ord("F")):
+                                sim_speed = 0.0 if sim_speed > 0 else 1.0
+                                estimation_plotter.sim_speed = sim_speed
+                                print(f"[Sim Speed] Fast mode: {'UNLIMITED' if sim_speed == 0 else '1.0x'}")
+
                             obstacle.handle_key(key)
+                            estimation_plotter.handle_key(key)
 
                             # Record spawn/removal at its event timestamp.
                             safety_log.obstacle_changed(
@@ -1612,16 +1646,16 @@ def run_scene(seed):
                         ) < 1:
                             break
 
-                        remaining = (
-                            steps_per_frame * dt
-                            - (
-                                time.perf_counter()
-                                - wall_start
+                        if sim_speed > 0:
+                            remaining = (
+                                (steps_per_frame * dt) / sim_speed
+                                - (
+                                    time.perf_counter()
+                                    - wall_start
+                                )
                             )
-                        )
-
-                        if remaining > 0:
-                            time.sleep(remaining)
+                            if remaining > 0:
+                                time.sleep(remaining)
 
     except KeyboardInterrupt:
         print("\nSimulation stopped.")

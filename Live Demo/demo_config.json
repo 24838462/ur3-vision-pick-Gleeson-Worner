@@ -1,0 +1,29 @@
+{
+    "home_q_deg": [
+        -52.38098393448192,
+        -77.39942114410192,
+        -61.819092781490774,
+        -130.43435471047755,
+        90.66450477863954,
+        36.51141824608514
+    ],
+    "drop_pos_base_m": [
+        0.1827179303241772,
+        -0.2815668585219663,
+        0.03638392049452441
+    ],
+    "grasp_width_mm": 25.0,
+    "cube_color": "green",
+    "heatmap_min_depth_m": 0.65,
+    "heatmap_max_depth_m": 1.88,
+    "gripper_tcp_offset_z_m": 0.195,
+    "gripper_open_width_mm": 80.0,
+    "hover_clearance_m": 0.07,
+    "calibration_offset_base_m": [
+        0.015,
+        -0.055,
+        0.0
+    ],
+    "grasp_offset_z_m": 0.002,
+    "final_approach_z_offset_m": 0.030
+}

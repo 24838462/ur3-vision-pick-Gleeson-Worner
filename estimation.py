@@ -151,6 +151,7 @@ class ObserverMonitor:
         self.samples = 0
         self.error_sum = np.zeros(3)
         self.next_report = 0.0
+        self.plotter = None
 
     def __enter__(self):
         self.file = self.path.open("w", newline="")
@@ -261,6 +262,19 @@ class ObserverMonitor:
             np.sum(qd_error**2),
         ]
         self.samples += joints
+
+        if self.plotter is not None:
+            self.plotter.add_sample(
+                now,
+                measured,
+                true_q,
+                true_qd,
+                q,
+                qd,
+                uncertainty[:, 0],
+                uncertainty[:, 1],
+                self.filter.nis,
+            )
 
         if now >= self.next_report:
             self.next_report = now + 2.0
