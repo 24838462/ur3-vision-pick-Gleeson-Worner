@@ -78,15 +78,13 @@
 
         body {
             font-family: var(--font-main);
-            background-color: var(--bg-primary);
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.65;
             padding-top: 70px;
         }
 
-        a {
-            color: var(--accent-blue);
-        }
+        a { color: var(--accent-blue); }
 
         a:focus-visible {
             outline: 2px solid var(--accent-cyan);
@@ -147,9 +145,7 @@
             white-space: nowrap;
         }
 
-        .nav-links a:hover {
-            color: var(--accent-blue);
-        }
+        .nav-links a:hover { color: var(--accent-blue); }
 
         .nav-btn {
             background: var(--accent-blue);
@@ -283,9 +279,7 @@
             border-color: var(--text-secondary);
         }
 
-        .section-header {
-            margin-bottom: 2.5rem;
-        }
+        .section-header { margin-bottom: 2.5rem; }
 
         .section-eyebrow {
             font-family: var(--font-mono);
@@ -358,22 +352,14 @@
             font-size: 0.95rem;
         }
 
-        .copy p + p {
-            margin-top: 1rem;
-        }
+        .copy p + p { margin-top: 1rem; }
 
         .copy ul,
-        .copy ol {
-            margin: 0.8rem 0 0 1.2rem;
-        }
+        .copy ol { margin: 0.8rem 0 0 1.2rem; }
 
-        .copy li + li {
-            margin-top: 0.65rem;
-        }
+        .copy li + li { margin-top: 0.65rem; }
 
-        .mt {
-            margin-top: 1.5rem;
-        }
+        .mt { margin-top: 1.5rem; }
 
         .note {
             color: var(--text-secondary);
@@ -398,8 +384,7 @@
 
         .video-frame-container iframe {
             position: absolute;
-            top: 0;
-            left: 0;
+            inset: 0;
             width: 100%;
             height: 100%;
             border: none;
@@ -469,13 +454,8 @@
             vertical-align: top;
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
         .badge-pass {
             color: var(--accent-green);
@@ -493,9 +473,7 @@
         }
 
         pre,
-        code {
-            font-family: var(--font-mono);
-        }
+        code { font-family: var(--font-mono); }
 
         code.inline {
             background: rgba(110, 118, 129, 0.2);
@@ -550,6 +528,22 @@
             margin-bottom: 1rem;
         }
 
+        .chart {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin: 1.2rem 0;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin: 0.6rem 0 1.5rem;
+            font-size: 0.9rem;
+        }
+
         footer {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border-color);
@@ -564,70 +558,33 @@
             text-decoration: none;
         }
 
-        footer a:hover {
-            color: var(--accent-blue);
-        }
+        footer a:hover { color: var(--accent-blue); }
 
         @media (max-width: 1200px) {
-            .nav-links {
-                gap: 0.65rem;
-            }
-
-            .nav-links a {
-                font-size: 0.76rem;
-            }
-
-            .nav-brand {
-                font-size: 1rem;
-            }
+            .nav-links { gap: 0.65rem; }
+            .nav-links a { font-size: 0.76rem; }
+            .nav-brand { font-size: 1rem; }
         }
 
         @media (max-width: 1000px) {
-            .nav-links {
-                display: none;
-            }
+            .nav-links { display: none; }
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.05rem;
-            }
-
-            .navbar {
-                padding: 0.8rem 1rem;
-            }
-
-            .card {
-                padding: 1.4rem;
-            }
-
-            .section-title {
-                font-size: 1.8rem;
-            }
-
-            section {
-                padding: 3rem 0;
-            }
+            .hero h1 { font-size: 2.2rem; }
+            .hero-subtitle { font-size: 1.05rem; }
+            .navbar { padding: 0.8rem 1rem; }
+            .card { padding: 1.4rem; }
+            .section-title { font-size: 1.8rem; }
+            section { padding: 3rem 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            html {
-                scroll-behavior: auto;
-            }
-
+            html { scroll-behavior: auto; }
             .card,
-            .btn {
-                transition: none;
-            }
-
+            .btn { transition: none; }
             .card:hover,
-            .btn-primary:hover {
-                transform: none;
-            }
+            .btn-primary:hover { transform: none; }
         }
     </style>
 </head>
@@ -796,23 +753,20 @@
 
                         <div class="copy">
                             <p>
-                                MuJoCo simulates the robot, Robotiq 2F-85 gripper,
-                                mounted camera, contact geometry and movable cubes.
-                                The arm has six directly actuated joints.
+                                We integrated the UR3, Robotiq 2F-85 gripper,
+                                mounted camera, contact geometry and movable cubes
+                                in MuJoCo. The arm has six directly actuated joints.
                             </p>
-
-                            <p>
-                                The mechanical model has coupled dynamics:
-                            </p>
+                            <p>The mechanical model has coupled dynamics:</p>
                         </div>
 
                         <div class="math-block">
                             $$\mathbf{M}(\mathbf{q})\ddot{\mathbf{q}}
-                            + \mathbf{h}(\mathbf{q},\dot{\mathbf{q}})
+                            +\mathbf{h}(\mathbf{q},\dot{\mathbf{q}})
                             =
                             \boldsymbol{\tau}
-                            + \boldsymbol{\tau}_{passive}
-                            + \boldsymbol{\tau}_{external}$$
+                            +\boldsymbol{\tau}_{passive}
+                            +\boldsymbol{\tau}_{external}$$
                         </div>
 
                         <div class="copy">
@@ -826,17 +780,17 @@
                         </div>
 
                         <div class="math-block">
-                            $$\mathbf{x} =
+                            $$\mathbf{x}=
                             \begin{bmatrix}
                                 \mathbf{q}\\
                                 \dot{\mathbf{q}}
                             \end{bmatrix}
-                            \in \mathbb{R}^{12},
+                            \in\mathbb{R}^{12},
                             \qquad
                             \mathbf{u}=\ddot{\mathbf{q}}_{cmd}
-                            \in \mathbb{R}^{6}$$
+                            \in\mathbb{R}^{6}$$
 
-                            $$\dot{\mathbf{x}} =
+                            $$\dot{\mathbf{x}}=
                             \underbrace{
                             \begin{bmatrix}
                                 \mathbf{0}_6 &amp; \mathbf{I}_6\\
@@ -849,13 +803,13 @@
                                 \mathbf{I}_6
                             \end{bmatrix}}_{\mathbf{B}}\mathbf{u}$$
 
-                            $$\mathbf{y} =
+                            $$\mathbf{y}=
                             \underbrace{
                             \begin{bmatrix}
                                 \mathbf{I}_6 &amp; \mathbf{0}_6
                             \end{bmatrix}}_{\mathbf{C}}\mathbf{x}
-                            + \mathbf{v},
-                            \qquad \mathbf{D}=\mathbf{0}$$
+                            +\mathbf{v},
+                            \qquad\mathbf{D}=\mathbf{0}$$
                         </div>
                     </div>
 
@@ -866,26 +820,26 @@
 
                         <div class="copy">
                             <p>
-                                The nominal controller interval is
+                                Our nominal controller interval is
                                 $T_s=0.010\,\mathrm{s}$, or $100\,\mathrm{Hz}$.
                                 Exact zero-order-hold discretisation gives:
                             </p>
                         </div>
 
                         <div class="math-block">
-                            $$\mathbf{A}_d =
+                            $$\mathbf{A}_d=
                             \begin{bmatrix}
                                 \mathbf{I}_6 &amp; T_s\mathbf{I}_6\\
                                 \mathbf{0}_6 &amp; \mathbf{I}_6
                             \end{bmatrix},
                             \qquad
-                            \mathbf{B}_d =
+                            \mathbf{B}_d=
                             \begin{bmatrix}
-                                \frac{1}{2}T_s^2\mathbf{I}_6\\
+                                \frac12T_s^2\mathbf{I}_6\\
                                 T_s\mathbf{I}_6
                             \end{bmatrix}$$
 
-                            $$\mathbf{B}_d =
+                            $$\mathbf{B}_d=
                             \begin{bmatrix}
                                 5\times10^{-5}\mathbf{I}_6\\
                                 0.01\mathbf{I}_6
@@ -921,7 +875,7 @@
                         </div>
 
                         <div class="math-block">
-                            $$\mathcal{C} =
+                            $$\mathcal{C}=
                             \begin{bmatrix}
                                 \mathbf{B}_d &amp;
                                 \mathbf{A}_d\mathbf{B}_d &amp;
@@ -929,7 +883,7 @@
                                 \mathbf{A}_d^{11}\mathbf{B}_d
                             \end{bmatrix}$$
 
-                            $$\mathcal{O} =
+                            $$\mathcal{O}=
                             \begin{bmatrix}
                                 \mathbf{C}\\
                                 \mathbf{C}\mathbf{A}_d\\
@@ -1005,26 +959,27 @@
 
                         <div class="copy">
                             <p>
-                                Arm feedback uses Kalman-filter estimates derived
-                                from noisy joint encoders. Estimated arm angles
-                                also drive wrist-camera forward kinematics,
-                                PBVS geometry and operational settling checks.
+                                Our arm feedback uses Kalman-filter estimates
+                                derived from noisy joint encoders. Estimated
+                                angles also drive wrist-camera forward
+                                kinematics, PBVS geometry and operational
+                                settling checks.
                             </p>
 
                             <p>
                                 Cube localisation, size ordering and pickup,
                                 transport-clearance and placement verification
-                                use RGB-D measurements. Spawn coordinates are
-                                used to construct the scene, rather than being
-                                supplied as task targets.
+                                use RGB-D measurements. Spawn coordinates
+                                construct the scene; they are not supplied
+                                as task targets.
                             </p>
 
                             <p>
-                                Simulator ground truth is recorded separately
-                                for evaluation. Computed-torque compensation
-                                still assumes ideal knowledge of the gripper's
-                                internal joint states, while replacing the arm
-                                states with observer estimates.
+                                We record simulator ground truth separately for
+                                evaluation. Computed-torque compensation still
+                                assumes ideal knowledge of the gripper's internal
+                                joint states, while replacing arm states with
+                                observer estimates.
                             </p>
                         </div>
                     </div>
@@ -1042,7 +997,7 @@
                                     The overhead camera and robot base are fixed.
                                 </li>
                                 <li>
-                                    The tabletop height is known. Cube measurement
+                                    Tabletop height is known. Cube measurement
                                     assumes upright cubes with sufficiently
                                     visible, approximately horizontal top faces.
                                 </li>
@@ -1054,14 +1009,14 @@
                                 </li>
                                 <li>
                                     Depth is rendered without added depth noise.
-                                    Visibility, occlusion and rejected surface
-                                    fits can still interrupt measurements.
+                                    Occlusion and rejected surface fits can still
+                                    interrupt measurements.
                                 </li>
                                 <li>
                                     Robot inertial and passive-force parameters
                                     are treated as known. Contact loads, payload
                                     changes and torque clipping limit the accuracy
-                                    of the nominal compensation model.
+                                    of nominal compensation.
                                 </li>
                             </ul>
                         </div>
@@ -1078,8 +1033,8 @@
                         Sensing, Calibration &amp; Frame Transformations
                     </h2>
                     <p class="section-desc">
-                        RGB-D back-projection, estimated camera pose and
-                        stable top-face measurements provide task targets.
+                        RGB-D back-projection, estimated camera pose and stable
+                        top-face measurements provide task targets.
                     </p>
                 </div>
 
@@ -1093,7 +1048,7 @@
                             <p>
                                 The wrist camera renders RGB and metric depth
                                 at $320\times240$ pixels. For the ideal simulated
-                                pinhole camera, focal length is calculated from
+                                pinhole camera, we calculate focal length from
                                 its vertical field of view and image height.
                             </p>
                         </div>
@@ -1101,12 +1056,10 @@
                         <div class="math-block">
                             $$f_x=f_y=
                             \frac{H}{2\tan(\mathrm{fovy}/2)},
-                            \qquad
-                            c_x=\frac{W-1}{2},
-                            \quad
-                            c_y=\frac{H-1}{2}$$
+                            \qquad c_x=\frac{W-1}{2},
+                            \quad c_y=\frac{H-1}{2}$$
 
-                            $$\mathbf{p}_{opt} =
+                            $$\mathbf{p}_{opt}=
                             \begin{bmatrix}
                                 (u-c_x)z/f_x\\
                                 (v-c_y)z/f_y\\
@@ -1127,23 +1080,19 @@
                             $$\mathbf{R}_{cam,opt}
                             =\operatorname{diag}(1,-1,-1)$$
 
-                            $$\begin{bmatrix}
-                                \mathbf{p}_{base}\\1
-                            \end{bmatrix}
+                            $$\begin{bmatrix}\mathbf{p}_{base}\\1\end{bmatrix}
                             =
                             \mathbf{T}_{base,tool}(\hat{\mathbf{q}})
                             \mathbf{T}_{tool,cam}
                             \mathbf{T}_{cam,opt}
-                            \begin{bmatrix}
-                                \mathbf{p}_{opt}\\1
-                            \end{bmatrix}$$
+                            \begin{bmatrix}\mathbf{p}_{opt}\\1\end{bmatrix}$$
                         </div>
 
                         <p class="note">
                             <code class="inline">CameraFrames</code> calculates
-                            camera geometry in a separate MuJoCo data object using
-                            estimated joint angles. The overhead camera uses its
-                            known fixed extrinsic transform.
+                            geometry in a separate MuJoCo data object using
+                            estimated joint angles. The overhead camera uses
+                            its known fixed extrinsic transform.
                         </p>
                     </div>
 
@@ -1157,9 +1106,9 @@
                                 <li>
                                     <strong>Segment colours:</strong>
                                     HSV masks identify red, green, blue and
-                                    purple regions. Morphological opening removes
-                                    small components; erosion reduces mixed
-                                    object/background depth at boundaries.
+                                    purple regions. Morphological opening
+                                    removes small components; erosion reduces
+                                    mixed object/background depth at boundaries.
                                 </li>
                                 <li>
                                     <strong>Recover a point cloud:</strong>
@@ -1195,19 +1144,16 @@
                         </div>
 
                         <div class="math-block">
-                            $$\Delta\theta =
-                            \left(
-                                \theta-\theta_{ref}+\frac{\pi}{4}
-                            \right)
-                            \bmod\frac{\pi}{2}
-                            -\frac{\pi}{4}$$
+                            $$\Delta\theta=
+                            \left(\theta-\theta_{ref}+\frac{\pi}{4}\right)
+                            \bmod\frac{\pi}{2}-\frac{\pi}{4}$$
                         </div>
 
                         <p class="note">
                             Fourfold square symmetry avoids unnecessary
-                            90-degree wrist rotations. The purple marker has a
-                            configured expected width; support-face checks also
-                            use the size previously measured from vision.
+                            90-degree wrist rotations. The purple marker has
+                            a configured expected width; support-face checks
+                            also use the size previously measured from vision.
                         </p>
                     </div>
                 </div>
@@ -1220,11 +1166,11 @@
                     <div class="copy">
                         <p>
                             After lifting, after transport and after release,
-                            the task requests fresh cube measurements. The
-                            overhead image is checked first, followed by the
-                            wrist image if needed. A top-face measurement is
-                            converted to an estimated cube centre using the
-                            previously measured side length.
+                            the task requests fresh cube measurements. We check
+                            the overhead image first, followed by the wrist image
+                            if needed. A top-face measurement is converted to an
+                            estimated cube centre using the previously measured
+                            side length.
                         </p>
 
                         <p>
@@ -1235,12 +1181,12 @@
                         </p>
 
                         <p>
-                            Lift and post-transport checks confirm clearance at
-                            those checkpoints; they are not continuous slip
+                            Lift and post-transport checks confirm clearance
+                            at those checkpoints; they are not continuous slip
                             detection. Placement is accepted within the current
                             configured tolerances of 25 mm horizontally and
-                            20 mm vertically. Actual observed errors for the
-                            documented runs are reported separately below.
+                            20 mm vertically. Observed errors from identified
+                            trials are reported separately below.
                         </p>
                     </div>
                 </div>
@@ -1270,20 +1216,19 @@
                         <div class="copy">
                             <p>
                                 Each encoder measurement is perturbed by
-                                independent zero-mean Gaussian noise. The
-                                documented final configuration uses a standard
+                                independent zero-mean Gaussian noise.
+                                Our final configuration uses a standard
                                 deviation of $0.20^\circ$.
                             </p>
                         </div>
 
                         <div class="math-block">
                             $$y_k=q_k+\nu_k,
-                            \qquad
-                            \nu_k\sim\mathcal{N}(0,R)$$
+                            \qquad \nu_k\sim\mathcal{N}(0,R)$$
 
-                            $$R =
+                            $$R=
                             \left(0.20\frac{\pi}{180}\right)^2
-                            \approx 1.218\times10^{-5}\,\mathrm{rad}^2$$
+                            \approx1.218\times10^{-5}\,\mathrm{rad}^2$$
                         </div>
 
                         <div class="copy">
@@ -1301,29 +1246,27 @@
                             \mathbf{A}\hat{\mathbf{x}}_{k-1|k-1}
                             +\mathbf{B}u_{k-1}$$
 
-                            $$\mathbf{A} =
+                            $$\mathbf{A}=
                             \begin{bmatrix}
                                 1 &amp; \Delta t\\
                                 0 &amp; 1
                             \end{bmatrix},
                             \qquad
-                            \mathbf{B} =
+                            \mathbf{B}=
                             \begin{bmatrix}
-                                \frac{1}{2}\Delta t^2\\
+                                \frac12\Delta t^2\\
                                 \Delta t
                             \end{bmatrix}$$
 
-                            $$\mathbf{Q}
-                            =\sigma_a^2\mathbf{B}\mathbf{B}^T,
-                            \qquad
-                            \sigma_a=2.0\,\mathrm{rad/s^2}$$
+                            $$\mathbf{Q}=\sigma_a^2\mathbf{B}\mathbf{B}^T,
+                            \qquad\sigma_a=2.0\,\mathrm{rad/s^2}$$
                         </div>
 
                         <p class="note">
                             Process uncertainty represents differences between
                             commanded and realised acceleration, including
-                            uncompensated loads. The supplied acceleration is a
-                            model input, not a ground-truth acceleration sensor.
+                            uncompensated loads. The supplied acceleration is
+                            a model input, not a ground-truth acceleration sensor.
                         </p>
                     </div>
 
@@ -1333,20 +1276,17 @@
                         </h3>
 
                         <div class="math-block">
-                            $$r_k =
-                            y_k-\mathbf{C}\hat{\mathbf{x}}_{k|k-1},
-                            \qquad \mathbf{C}=[1\quad0]$$
+                            $$r_k=y_k-\mathbf{C}\hat{\mathbf{x}}_{k|k-1},
+                            \qquad\mathbf{C}=[1\quad0]$$
 
-                            $$S_k =
+                            $$S_k=
                             \mathbf{C}\mathbf{P}_{k|k-1}\mathbf{C}^T+R,
                             \qquad
-                            \mathbf{K}_k =
-                            \mathbf{P}_{k|k-1}\mathbf{C}^T S_k^{-1}$$
+                            \mathbf{K}_k=
+                            \mathbf{P}_{k|k-1}\mathbf{C}^TS_k^{-1}$$
 
                             $$\hat{\mathbf{x}}_{k|k}
-                            =
-                            \hat{\mathbf{x}}_{k|k-1}
-                            +\mathbf{K}_k r_k$$
+                            =\hat{\mathbf{x}}_{k|k-1}+\mathbf{K}_kr_k$$
 
                             $$\mathbf{P}_{k|k}
                             =
@@ -1370,7 +1310,7 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">
-                                            Seed-7 baseline metric
+                                            Seed 7, 0.20&deg; analysis metric
                                         </th>
                                         <th scope="col">Approximate value</th>
                                     </tr>
@@ -1378,11 +1318,11 @@
                                 <tbody>
                                     <tr>
                                         <td>Raw encoder position RMSE</td>
-                                        <td>$0.200^\circ$</td>
+                                        <td>0.200&deg;</td>
                                     </tr>
                                     <tr>
                                         <td>Estimated position RMSE</td>
-                                        <td>$0.096^\circ$</td>
+                                        <td>0.096&deg;</td>
                                     </tr>
                                     <tr>
                                         <td>Position RMSE reduction</td>
@@ -1390,18 +1330,18 @@
                                     </tr>
                                     <tr>
                                         <td>Estimated velocity RMSE</td>
-                                        <td>$0.0266\,\mathrm{rad/s}$</td>
+                                        <td>0.0267 rad/s</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <p class="note">
-                            Values are rounded cumulative console metrics near
-                            completion of the baseline task, pooled across six
-                            joints. Additional stationary holding changes the
-                            cumulative metric and should not be confused with
-                            task-only performance.
+                            We calculated these values from the final seed-7 CSV
+                            run, pooling all six joints from time zero through
+                            the final PBVS phase's first convergence. The results
+                            section defines the window and compares all six runs.
+                            Unequal holding time after that endpoint is excluded.
                         </p>
                     </div>
                 </div>
@@ -1429,16 +1369,17 @@
                             Increasing process variance makes the filter more
                             responsive to unmodelled acceleration. Both choices
                             affect noise suppression and tracking responsiveness.
-                            A precise phase-lag value is not claimed without a
+                            We do not claim a precise phase-lag value without a
                             dedicated timing experiment.
                         </p>
 
                         <p>
-                            Increasing simulated noise and increasing the
-                            filter's assumed measurement variance are separate
-                            changes. Earlier noise-level experiments should be
-                            identified by their code version and configuration
-                            before comparison with final estimated-feedback runs.
+                            We compared 0.05, 0.10 and 0.20 degree encoder noise
+                            at seed 7 using the final implementation. Our setting
+                            changes injected noise and assumed measurement
+                            variance together, while retaining acceleration
+                            uncertainty at 2.0 rad/s&sup2;. The results section
+                            reports this matched-noise comparison and its limits.
                         </p>
                     </div>
                 </div>
@@ -1466,23 +1407,22 @@
 
                         <div class="copy">
                             <p>
-                                The nominal 12-state model is augmented with six
+                                We augment the nominal 12-state model with six
                                 integrated position-error states. Discrete LQR
                                 design on this 18-state system gives LQI feedback.
                             </p>
                         </div>
 
                         <div class="math-block">
-                            $$\mathbf{e}_q =
+                            $$\mathbf{e}_q=
                             \mathbf{q}_{des}-\hat{\mathbf{q}},
                             \qquad
-                            \mathbf{e}_v =
+                            \mathbf{e}_v=
                             \dot{\mathbf{q}}_{des}
                             -\hat{\dot{\mathbf{q}}}$$
 
                             $$\mathbf{z}_{k+1}
-                            =
-                            \mathbf{z}_k+T_s\mathbf{e}_{q,k}$$
+                            =\mathbf{z}_k+T_s\mathbf{e}_{q,k}$$
 
                             $$\ddot{\mathbf{q}}_{cmd}
                             =
@@ -1510,10 +1450,10 @@
                             </p>
 
                             <p>
-                                At a 10 ms sample interval, the identical
-                                nominal joint gains are approximately
+                                At a 10 ms sample interval, the identical nominal
+                                joint gains are approximately
                                 $K_q=29.3648$, $K_v=8.5409$ and $K_i=21.9352$.
-                                The design uses error and input scales in
+                                The design uses the error and input scales in
                                 <code class="inline">joint_controller.py</code>.
                             </p>
 
@@ -1528,9 +1468,9 @@
                         </div>
 
                         <p class="note">
-                            The acceleration anti-windup logic does not explicitly
+                            Acceleration anti-windup does not explicitly
                             compensate subsequent motor-torque clipping.
-                            Saturation and tracking must therefore be evaluated
+                            We therefore evaluate saturation and tracking
                             in the full simulation.
                         </p>
                     </div>
@@ -1542,9 +1482,7 @@
 
                         <div class="math-block">
                             $$\mathbf{A}_{cl}
-                            =
-                            \mathbf{A}_{aug}
-                            -\mathbf{B}_{aug}\mathbf{K}$$
+                            =\mathbf{A}_{aug}-\mathbf{B}_{aug}\mathbf{K}$$
 
                             $$\max_i|\lambda_i(\mathbf{A}_{cl})|
                             \approx0.989901\lt1$$
@@ -1575,10 +1513,10 @@
                             </p>
 
                             <p>
-                                Joint tracking divergence and non-finite states
-                                are monitored. A recovery event is reported as
-                                an event in the trial, rather than treating that
-                                trial as uninterrupted nominal operation.
+                                We monitor joint tracking divergence and
+                                non-finite states. Recovery events remain part
+                                of the trial history rather than being treated
+                                as uninterrupted nominal operation.
                             </p>
                         </div>
                     </div>
@@ -1592,33 +1530,30 @@
                     <div class="copy">
                         <p>
                             PBVS uses fresh RGB-D target position and yaw.
-                            The known camera-to-pinch transform converts a desired
-                            grasp or placement pose into a desired camera pose.
-                            Estimated forward kinematics provide the camera
-                            Jacobian and current pose.
+                            The known camera-to-pinch transform converts a
+                            desired grasp or placement pose into a desired
+                            camera pose. Estimated forward kinematics provide
+                            the camera Jacobian and current pose.
                         </p>
 
                         <p>
                             Let $\mathbf{t}_c,\mathbf{R}_c$ describe the observed
                             target in the current optical frame, and
                             $\mathbf{t}_d,\mathbf{R}_d$ describe the target in
-                            the desired camera frame. The implementation forms:
+                            the desired camera frame. Our implementation forms:
                         </p>
                     </div>
 
                     <div class="math-block">
-                        $$\mathbf{e}_t =
-                        \mathbf{t}_c-\mathbf{t}_d,
+                        $$\mathbf{e}_t=\mathbf{t}_c-\mathbf{t}_d,
                         \qquad
-                        \mathbf{e}_R =
+                        \mathbf{e}_R=
                         \operatorname{rotvec}
                         \left(\mathbf{R}_c\mathbf{R}_d^T\right)$$
 
-                        $$\boldsymbol{\omega}
-                        =g\mathbf{e}_R,
+                        $$\boldsymbol{\omega}=g\mathbf{e}_R,
                         \qquad
-                        \mathbf{v}
-                        =g\mathbf{e}_t
+                        \mathbf{v}=g\mathbf{e}_t
                         +\mathbf{t}_c\times\boldsymbol{\omega}$$
 
                         $$\dot{\mathbf{q}}
@@ -1627,16 +1562,15 @@
                         \left(
                             \mathbf{J}_w\mathbf{J}_w^T
                             +\lambda^2\mathbf{I}
-                        \right)^{-1}
-                        \boldsymbol{\xi}_w$$
+                        \right)^{-1}\boldsymbol{\xi}_w$$
                     </div>
 
                     <div class="copy">
                         <p>
-                            Angular rows of the optical-frame Jacobian and
-                            command are weighted by 0.15. Damping is fixed at
+                            Angular rows of the optical-frame Jacobian and command
+                            are weighted by 0.15. Damping is fixed at
                             $\lambda=0.005$. Camera linear speed, angular speed
-                            and joint rates are bounded by phase-specific limits.
+                            and joint rates have phase-specific limits.
                         </p>
                     </div>
 
@@ -1679,17 +1613,15 @@
 
                     <p class="note">
                         Missing or rejected measurements produce zero PBVS
-                        command for that update. Persistent loss can pause the
-                        phase or invoke the task's recovery handling. Lower gains
+                        command for that update. Persistent loss can pause
+                        the phase or invoke task recovery handling. Lower gains
                         and speed limits reduce commanded motion near objects,
                         but do not guarantee an overshoot-free response.
                     </p>
                 </div>
 
                 <div class="card mt">
-                    <h3 class="card-title">
-                        Hybrid Task Sequence
-                    </h3>
+                    <h3 class="card-title">Hybrid Task Sequence</h3>
 
                     <div class="table-responsive">
                         <table>
@@ -1760,11 +1692,11 @@
                     </div>
 
                     <p class="note">
-                        The system combines visual feedback with planned motion.
-                        It does not claim continuous PBVS during every lift,
-                        lowering or withdrawal segment. Nominal PBVS completion
-                        requires five accepted consecutive frames within the
-                        phase's position and orientation tolerances.
+                        Our system combines visual feedback with planned motion.
+                        PBVS does not control every lift, lowering or withdrawal
+                        segment. Nominal PBVS completion requires five accepted
+                        consecutive frames within the phase's position and
+                        orientation tolerances.
                     </p>
                 </div>
             </div>
@@ -1774,9 +1706,7 @@
             <div class="container">
                 <div class="section-header">
                     <div class="section-eyebrow">Part E &bull; Integration</div>
-                    <h2 class="section-title">
-                        Reactive Safety Supervisor
-                    </h2>
+                    <h2 class="section-title">Reactive Safety Supervisor</h2>
                     <p class="section-desc">
                         Camera-based intrusion detection interrupts the task,
                         tracks an obstacle when empty and holds position when
@@ -1786,17 +1716,13 @@
 
                 <div class="grid-3">
                     <div class="card">
-                        <h3 class="card-title">
-                            1. Empty-Gripper Tracking
-                        </h3>
-
+                        <h3 class="card-title">1. Empty-Gripper Tracking</h3>
                         <div class="copy">
                             <p>
                                 An overhead RGB-D camera detects the configured
                                 cyan intruder and estimates its motion with a
                                 position/velocity Kalman filter.
                             </p>
-
                             <p>
                                 When the gripper is empty, the stacking sequence
                                 pauses. Wrist-camera gaze and distance feedback
@@ -1807,10 +1733,7 @@
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">
-                            2. Proximity and Motion Limits
-                        </h3>
-
+                        <h3 class="card-title">2. Proximity and Motion Limits</h3>
                         <div class="copy">
                             <p>
                                 Configured safety distances are 0.22 m standoff,
@@ -1818,22 +1741,18 @@
                                 The controller uses its configured camera and
                                 pinch-point geometry.
                             </p>
-
                             <p>
                                 Critical proximity requests a stop response.
                                 Commands are limited or decelerated by the
-                                simulation's safety state machine. Finite camera
-                                sampling and actuator dynamics mean this is not
-                                an instantaneous physical stop.
+                                safety state machine. Finite camera sampling
+                                and actuator dynamics mean this is not an
+                                instantaneous physical stop.
                             </p>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">
-                            3. Carry Hold and Resume
-                        </h3>
-
+                        <h3 class="card-title">3. Carry Hold and Resume</h3>
                         <div class="copy">
                             <p>
                                 When the task indicates a cube is being carried,
@@ -1841,7 +1760,6 @@
                                 pose. The controller maintains that pose and
                                 retains the gripper command.
                             </p>
-
                             <p>
                                 Physics, perception and estimation continue.
                                 After the configured clearance period, the arm
@@ -1870,8 +1788,7 @@
                             Operational safety arbitration uses camera tracking
                             and confirmation states. The keyboard spawn toggle
                             creates or removes the test obstacle and supplies
-                            evaluation labels; it no longer gates the tracking
-                            response.
+                            evaluation labels; it no longer gates tracking.
                         </p>
 
                         <p>
@@ -1884,10 +1801,10 @@
                         </p>
 
                         <p>
-                            Logged states distinguish tracking, carrying hold,
-                            recovery and resuming. An observed tracking-divergence
-                            recovery is retained in the results rather than
-                            omitted from the trial history.
+                            We log tracking, carrying hold, recovery and resuming
+                            states. Tracking-divergence recovery remains part of
+                            the results rather than being omitted from the
+                            trial history.
                         </p>
                     </div>
                 </div>
@@ -1899,13 +1816,14 @@
             <div class="container">
                 <div class="hd-banner">
                     <span class="hd-badge">&starf; HIGH DISTINCTION EVIDENCE</span>
-                    <h2 style="font-family:var(--font-heading); font-size:2rem; margin-bottom: 0.8rem; color:#fff;">
+                    <h2 style="font-family:var(--font-heading); font-size:2rem; margin-bottom:0.8rem; color:#fff;">
                         Real Hardware Implementation: UR3e + RealSense D435i + RG2 Gripper
                     </h2>
-                    <p style="color:var(--text-secondary); max-width:850px; font-size: 1.05rem;">
+                    <p style="color:var(--text-secondary); max-width:850px; font-size:1.05rem;">
                         In accordance with Section 1 of the marking criteria, our team deployed the perception, visual servoing, and grasp pipeline onto a physical Universal Robots UR3e manipulator with an OnRobot RG2 gripper and an external Intel RealSense D435i depth camera.
                     </p>
                 </div>
+
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -1921,7 +1839,7 @@
                                 <td><strong>Camera Configuration</strong></td>
                                 <td>Wrist-Mounted (Eye-in-Hand)</td>
                                 <td>Stationary Tripod (Eye-to-Hand)</td>
-                                <td>Calculated extrinsic transformation $[\mathbf{R} \mid \mathbf{t}]$ via 4-point SVD correspondence from optical frame to robot base.</td>
+                                <td>Calculated extrinsic transformation $[\mathbf{R}\mid\mathbf{t}]$ via 4-point SVD correspondence from optical frame to robot base.</td>
                             </tr>
                             <tr>
                                 <td><strong>Depth Map Quality</strong></td>
@@ -1937,7 +1855,7 @@
                             </tr>
                             <tr>
                                 <td><strong>Control Interface</strong></td>
-                                <td>Direct torque stream ($\mathbf{M}\ddot{\mathbf{q}} + \mathbf{c}$)</td>
+                                <td>Direct torque stream ($\mathbf{M}\ddot{\mathbf{q}}+\mathbf{c}$)</td>
                                 <td>UR RTDE socket streaming (<code class="inline">speedJ</code>)</td>
                                 <td>Passed $80\text{ ms}$ lookahead time buffer to eliminate Error <code class="inline">C271A1</code> real-time thread starvation.</td>
                             </tr>
@@ -1957,302 +1875,665 @@
             <div class="container">
                 <div class="section-header">
                     <div class="section-eyebrow">Evaluation</div>
-                    <h2 class="section-title">
-                        Documented Results and Robustness Tests
-                    </h2>
+                    <h2 class="section-title">Final Seed and Noise Results</h2>
                     <p class="section-desc">
-                        Results below separate logged quantitative evidence,
-                        operator-confirmed completion and tests from earlier
-                        development versions.
+                        We tested four scene seeds at our final 0.20&deg;
+                        encoder-noise setting, then compared three noise levels
+                        using seed 7.
                     </p>
                 </div>
+
+                <div class="card copy">
+                    <h3 class="card-title">What We Tested</h3>
+
+                    <p>
+                        Our final test archive contains six runs, each with
+                        observer, PBVS and safety CSV logs. All six runs recorded
+                        convergence in all 12 PBVS phases: pickup approach,
+                        pickup descent, placement transport and placement
+                        approach for each of the three cubes.
+                    </p>
+
+                    <p>
+                        We kept seed 7 fixed for the noise comparison and changed
+                        <code class="inline">ENCODER_NOISE_DEG</code> between
+                        0.05, 0.10 and 0.20 degrees. This changes both the injected
+                        Gaussian encoder noise and the filter's assumed
+                        measurement variance. Acceleration uncertainty remained
+                        at 2.0 rad/s&sup2;.
+                    </p>
+
+                    <p>
+                        This tests matched-noise performance in one scene.
+                        It is not a full seed-by-noise experiment or a
+                        noise-mismatch test.
+                    </p>
+                </div>
+
+                <h3 class="card-title mt">
+                    Different Scene Seeds at 0.20&deg; Noise
+                </h3>
 
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th scope="col">Trial</th>
-                                <th scope="col">Detection and order</th>
-                                <th scope="col">Task outcome</th>
+                                <th scope="col">Seed</th>
+                                <th scope="col">Encoder noise SD</th>
+                                <th scope="col">Converged PBVS phases</th>
+                                <th scope="col">Raw position RMSE</th>
+                                <th scope="col">KF position RMSE</th>
+                                <th scope="col">KF velocity RMSE</th>
                                 <th scope="col">
-                                    Largest logged PBVS convergence error
+                                    Largest terminal PBVS translation / rotation
                                 </th>
-                                <th scope="col">Evidence and qualification</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><strong>Seed 7: baseline</strong></td>
-                                <td>
-                                    Three cubes and purple detected;
-                                    blue &rarr; green &rarr; red
-                                </td>
-                                <td class="badge-pass">
-                                    Three placements visually confirmed;
-                                    sequence completed
-                                </td>
-                                <td>2.4 mm; 1.0&deg;</td>
-                                <td>
-                                    All 12 PBVS phases reported convergence.
-                                    Completion message present in the console log.
-                                </td>
+                                <td>1</td>
+                                <td>0.20&deg;</td>
+                                <td class="badge-pass">12 / 12</td>
+                                <td>0.1998&deg;</td>
+                                <td>0.0957&deg;</td>
+                                <td>0.0264 rad/s</td>
+                                <td>2.59 mm / 1.58&deg;</td>
                             </tr>
-
                             <tr>
-                                <td><strong>Seed 7: carrying intrusion</strong></td>
-                                <td>
-                                    Three cubes and purple detected;
-                                    largest-to-smallest order
-                                </td>
-                                <td class="badge-pass">
-                                    Carry hold and resume;
-                                    three placements visually confirmed
-                                </td>
-                                <td>2.6 mm; 1.4&deg;</td>
-                                <td>
-                                    All 12 PBVS phases converged.
-                                    The run was stopped during the final
-                                    observation after all placements.
-                                </td>
+                                <td>2</td>
+                                <td>0.20&deg;</td>
+                                <td class="badge-pass">12 / 12</td>
+                                <td>0.2002&deg;</td>
+                                <td>0.0959&deg;</td>
+                                <td>0.0266 rad/s</td>
+                                <td>2.84 mm / 2.05&deg;</td>
                             </tr>
-
                             <tr>
-                                <td>
-                                    <strong>
-                                        Seed 7: empty and carrying interruptions
-                                    </strong>
-                                </td>
-                                <td>
-                                    Camera-triggered tracking and carrying hold
-                                </td>
-                                <td>
-                                    Resume transitions logged;
-                                    full completion reported by the operator
-                                </td>
-                                <td>
-                                    Complete-run quantitative summary not
-                                    available in the supplied excerpt
-                                </td>
-                                <td>
-                                    Two empty-gripper interruptions and a
-                                    carrying hold were demonstrated. One 8&deg;
-                                    tracking-divergence recovery occurred.
-                                </td>
+                                <td>3</td>
+                                <td>0.20&deg;</td>
+                                <td class="badge-pass">12 / 12</td>
+                                <td>0.2008&deg;</td>
+                                <td>0.0968&deg;</td>
+                                <td>0.0271 rad/s</td>
+                                <td>2.17 mm / 1.19&deg;</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>0.20&deg;</td>
+                                <td class="badge-pass">12 / 12</td>
+                                <td>0.2002&deg;</td>
+                                <td>0.0962&deg;</td>
+                                <td>0.0267 rad/s</td>
+                                <td>2.41 mm / 1.04&deg;</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="copy">
-                    <p>
-                        <strong>Metric definition:</strong>
-                        “Largest logged PBVS convergence error” is the maximum
-                        of the terminal error values printed when each phase
-                        converged. Translation and rotation maxima are calculated
-                        separately. These are not the maximum errors encountered
-                        during the approach, nor independent ground-truth
-                        placement errors.
-                    </p>
+                <p class="note">
+                    Across seeds 1, 2, 3 and 7, pooled KF position RMSE ranged
+                    from 0.0957&deg; to 0.0968&deg;, compared with approximately
+                    0.20&deg; for raw encoders. Every run recorded 12 converged
+                    phases. This table reports numerical servo convergence;
+                    final placement success is not inferred from joint or
+                    PBVS logs alone.
+                </p>
 
-                    <p>
-                        <strong>Scope of the result:</strong>
-                        Three placements in one run describe that trial.
-                        They do not establish a general 100% success rate across
-                        unseen configurations.
-                    </p>
-                </div>
+                <h3 class="card-title mt">
+                    Seed 7: Encoder-Noise Comparison
+                </h3>
 
-                <div class="grid-2 mt">
-                    <div class="card">
-                        <h3 class="card-title">
-                            Visually Estimated Placement Errors
-                        </h3>
-
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Cube</th>
-                                        <th scope="col">Baseline XY / Z</th>
-                                        <th scope="col">Carry trial XY / Z</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Blue</td>
-                                        <td>1.5 / 0.1 mm</td>
-                                        <td>0.5 / 1.6 mm</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Green</td>
-                                        <td>2.7 / 0.3 mm</td>
-                                        <td>1.0 / 0.3 mm</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Red</td>
-                                        <td>0.6 / 0.4 mm</td>
-                                        <td>1.2 / 0.2 mm</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <p class="note">
-                            These are camera-derived acceptance measurements
-                            relative to the task's estimated support target.
-                            They share perception and calibration assumptions
-                            with the controller and are not independent
-                            ground-truth accuracy measurements.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="card-title">
-                            Randomisation and Historical Tests
-                        </h3>
-
-                        <div class="copy">
-                            <p>
-                                Cube positions and yaw are randomised. Cube
-                                centres spawn within X = 0.22–0.38 m and
-                                Y = 0.08–0.24 m, with minimum spacing.
-                                The purple destination is also randomised.
-                            </p>
-
-                            <p>
-                                Seeds 1, 2, 3 and 7 were reported successful
-                                during development. Those tests span earlier
-                                implementations and are not pooled into a final
-                                version success percentage.
-                            </p>
-
-                            <p>
-                                Earlier encoder-noise experiments used 0.05,
-                                0.10 and 0.20 degrees. The quantitative final
-                                configuration documented here uses 0.20 degrees.
-                                Earlier results should retain their original
-                                code-version and feedback-mode labels.
-                            </p>
-
-                            <p>
-                                Random cube size is not enabled by the current
-                                scene initialisation. Size ordering is measured
-                                from vision, but valid size changes must still
-                                satisfy detector, spacing, gripper and reach limits.
-                            </p>
-                        </div>
-                    </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Noise SD</th>
+                                <th scope="col">Raw position RMSE</th>
+                                <th scope="col">KF position RMSE</th>
+                                <th scope="col">RMSE reduction</th>
+                                <th scope="col">KF velocity RMSE</th>
+                                <th scope="col">Mean NIS</th>
+                                <th scope="col">
+                                    Position &plusmn;2&sigma; coverage
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0.05&deg;</td>
+                                <td>0.0500&deg;</td>
+                                <td>0.0320&deg;</td>
+                                <td class="badge-pass">36.1%</td>
+                                <td>0.0176 rad/s</td>
+                                <td>0.841</td>
+                                <td>97.07%</td>
+                            </tr>
+                            <tr>
+                                <td>0.10&deg;</td>
+                                <td>0.1001&deg;</td>
+                                <td>0.0556&deg;</td>
+                                <td class="badge-pass">44.4%</td>
+                                <td>0.0215 rad/s</td>
+                                <td>0.889</td>
+                                <td>97.26%</td>
+                            </tr>
+                            <tr>
+                                <td>0.20&deg;</td>
+                                <td>0.2002&deg;</td>
+                                <td>0.0962&deg;</td>
+                                <td class="badge-pass">52.0%</td>
+                                <td>0.0267 rad/s</td>
+                                <td>0.925</td>
+                                <td>97.31%</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <div class="card mt">
                     <h3 class="card-title">
-                        Evidence Identification
+                        Noise Rejection and Reconstruction Error
                     </h3>
+
+                    <!--
+                        Compact SVG representation of the analysed data.
+                        Plot coordinates were generated from the CSV metrics.
+                    -->
+                    <svg
+                        class="chart"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 720 216"
+                        role="img"
+                        aria-labelledby="noise-chart-title noise-chart-description"
+                    >
+                        <title id="noise-chart-title">
+                            Seed 7 position and velocity RMSE
+                        </title>
+                        <desc id="noise-chart-description">
+                            Position RMSE increases with encoder noise.
+                            The Kalman-filter estimate has lower position RMSE
+                            than raw encoders at all three tested settings.
+                            Estimated velocity RMSE also increases with noise.
+                        </desc>
+
+                        <rect width="720" height="216" fill="#161b22"/>
+
+                        <g
+                            font-family="Arial, sans-serif"
+                            font-size="10"
+                            fill="#c9d1d9"
+                        >
+                            <g fill="none" stroke="#6e7681" stroke-width="0.8">
+                                <path d="M25.90 18.12V182.64H350.04"/>
+                                <path d="M392.87 18.12V182.64H717"/>
+                            </g>
+
+                            <g text-anchor="middle">
+                                <text x="40.64" y="197.24">0.05</text>
+                                <text x="138.86" y="197.24">0.10</text>
+                                <text x="335.30" y="197.24">0.20</text>
+                                <text x="187.97" y="210.92">
+                                    Encoder noise SD (deg)
+                                </text>
+
+                                <text x="407.60" y="197.24">0.05</text>
+                                <text x="505.82" y="197.24">0.10</text>
+                                <text x="702.27" y="197.24">0.20</text>
+                                <text x="554.93" y="210.92">
+                                    Encoder noise SD (deg)
+                                </text>
+                            </g>
+
+                            <g text-anchor="end">
+                                <text x="18.90" y="186.44">0.0</text>
+                                <text x="18.90" y="107.58">0.1</text>
+                                <text x="18.90" y="28.72">0.2</text>
+
+                                <text x="385.87" y="176.76">0.015</text>
+                                <text x="385.87" y="128.38">0.020</text>
+                                <text x="385.87" y="79.99">0.025</text>
+                                <text x="385.87" y="31.60">0.030</text>
+                            </g>
+
+                            <g
+                                font-size="12"
+                                text-anchor="middle"
+                                fill="#f0f6fc"
+                            >
+                                <text x="187.97" y="12.12">
+                                    Position RMSE (deg)
+                                </text>
+                                <text x="554.93" y="12.12">
+                                    Velocity RMSE (rad/s)
+                                </text>
+                            </g>
+                        </g>
+
+                        <g fill="none" stroke-width="2">
+                            <path
+                                d="M40.64 143.18L138.86 103.73L335.30 24.75"
+                                stroke="#d29922"
+                            />
+                            <path
+                                d="M40.64 157.44L138.86 138.77L335.30 106.81"
+                                stroke="#39c5cf"
+                            />
+                            <path
+                                d="M407.60 147.52L505.82 110.14L702.27 59.80"
+                                stroke="#a371f7"
+                            />
+                        </g>
+
+                        <g fill="#d29922">
+                            <circle cx="40.64" cy="143.18" r="2.5"/>
+                            <circle cx="138.86" cy="103.73" r="2.5"/>
+                            <circle cx="335.30" cy="24.75" r="2.5"/>
+                        </g>
+
+                        <g fill="#39c5cf">
+                            <circle cx="40.64" cy="157.44" r="2.5"/>
+                            <circle cx="138.86" cy="138.77" r="2.5"/>
+                            <circle cx="335.30" cy="106.81" r="2.5"/>
+                        </g>
+
+                        <g fill="#a371f7">
+                            <circle cx="407.60" cy="147.52" r="2.5"/>
+                            <circle cx="505.82" cy="110.14" r="2.5"/>
+                            <circle cx="702.27" cy="59.80" r="2.5"/>
+                        </g>
+                    </svg>
+
+                    <div class="chart-legend">
+                        <span style="color:var(--accent-amber);">
+                            Raw encoder position
+                        </span>
+                        <span style="color:var(--accent-cyan);">
+                            KF position
+                        </span>
+                        <span style="color:var(--accent-purple);">
+                            KF velocity
+                        </span>
+                    </div>
 
                     <div class="copy">
                         <p>
-                            The documented baseline uses log identifier
-                            <code class="inline">
-                                seed_7_1793694768398746900
-                            </code>.
-                            The carrying trial uses
-                            <code class="inline">
-                                seed_7_1793698353478272700
-                            </code>.
-                            The combined interruption excerpt uses
-                            <code class="inline">
-                                seed_7_1793699885696405900
-                            </code>.
+                            Our filter reduced position RMSE at every tested
+                            noise level. Percentage reduction increased from
+                            36.1% at 0.05&deg; to 52.0% at 0.20&deg;.
+                            However, absolute position error also increased,
+                            from 0.0320&deg; to 0.0962&deg;, and velocity RMSE
+                            increased from 0.0176 to 0.0267 rad/s.
+                            A larger percentage improvement therefore does not
+                            mean the high-noise estimate was more accurate.
                         </p>
 
                         <p>
-                            Each identifier corresponds to PBVS, observer and
-                            safety CSV filenames with the prefixes
-                            <code class="inline">pbvs_</code>,
-                            <code class="inline">observer_</code> and
-                            <code class="inline">safety_</code>.
-                            Reported values above were extracted from the
-                            associated console output.
-                        </p>
-
-                        <p>
-                            PBVS logs describe measurement validity,
-                            phase errors, commands and convergence.
-                            Observer logs contain noisy readings, estimates,
-                            uncertainty and evaluation truth.
-                            Safety logs relate obstacle events, state transitions
-                            and robot motion for response evaluation.
+                            All three seed-7 runs reached convergence in all
+                            12 PBVS phases. These runs show successful servo
+                            convergence across the tested matched-noise settings.
+                            Broader conclusions require repetitions and
+                            additional scene/noise combinations.
                         </p>
                     </div>
                 </div>
 
                 <div class="grid-2 mt">
-                    <div class="card">
+                    <div class="card copy">
                         <h3 class="card-title">
-                            Engineering Trade-Offs
+                            How We Calculated the Metrics
                         </h3>
 
-                        <div class="copy">
-                            <ul>
-                                <li>
-                                    <strong>Noise rejection versus responsiveness:</strong>
-                                    Filter tuning balances noisy measurements
-                                    against confidence in the acceleration model.
-                                </li>
-                                <li>
-                                    <strong>Speed versus visibility:</strong>
-                                    Faster scanning reduces search time but
-                                    leaves fewer frames for stable detection.
-                                </li>
-                                <li>
-                                    <strong>Servo speed versus smoothness:</strong>
-                                    Lower phase gains and rate limits slow
-                                    convergence but reduce abrupt commands near
-                                    grasp and placement poses.
-                                </li>
-                                <li>
-                                    <strong>Visibility versus transport coverage:</strong>
-                                    Recorded targets guide initial transport;
-                                    live PBVS takes over once the support target
-                                    is accepted in view.
-                                </li>
-                            </ul>
+                        <p>
+                            To exclude unequal holding time after servo
+                            completion, we analysed observer samples from
+                            simulation time zero through the first logged
+                            convergence of the final placement-approach phase.
+                        </p>
+
+                        <p>
+                            This includes search, reacquisition, trajectory
+                            segments and preceding servo phases, but excludes
+                            the final lowering, release and withdrawal.
+                            It is a consistently defined analysis window,
+                            not total task duration.
+                        </p>
+
+                        <p>
+                            We recomputed raw encoder error, estimated position
+                            error and estimated velocity error directly from
+                            measurement, estimate and evaluation-truth columns.
+                            The recomputed errors agreed with the logged error
+                            columns.
+                        </p>
+
+                        <p>
+                            RMSE pools equally sampled errors across all six
+                            joints. These pooled values do not represent the
+                            worst individual joint.
+                        </p>
+
+                        <div class="math-block">
+                            $$\mathrm{RMSE}=
+                            \sqrt{
+                                \frac{1}{N}
+                                \sum_{i=1}^{N}(\hat{x}_i-x_i)^2
+                            }$$
                         </div>
+
+                        <p>
+                            Percentage reduction is
+                            <code class="inline">
+                                100 &times; (1 &minus; KF position RMSE /
+                                raw encoder RMSE)
+                            </code>.
+                            Position errors are converted from radians to
+                            degrees; velocity errors remain in rad/s.
+                            Statistics are rounded for display.
+                        </p>
                     </div>
 
-                    <div class="card">
+                    <div class="card copy">
                         <h3 class="card-title">
-                            Remaining Validation Limits
+                            PBVS Convergence and Validity
                         </h3>
 
-                        <div class="copy">
-                            <ul>
-                                <li>
-                                    Repeat the final implementation across
-                                    multiple seeds and noise settings before
-                                    claiming broad robustness.
-                                </li>
-                                <li>
-                                    Separate active task metrics from prolonged
-                                    stationary holding and safety pauses.
-                                </li>
-                                <li>
-                                    Evaluate placement independently against
-                                    simulator ground truth for accuracy reporting,
-                                    without feeding that truth into task control.
-                                </li>
-                                <li>
-                                    Measure false detections, detection latency,
-                                    stop distance and holding drift from safety
-                                    logs before making numerical safety claims.
-                                </li>
-                                <li>
-                                    A successful recovery in one trial does not
-                                    establish recovery from every IK, visibility
-                                    or generator failure.
-                                </li>
-                            </ul>
-                        </div>
+                        <p>
+                            We treated each contiguous target/phase block as
+                            one phase and selected its first row with
+                            <code class="inline">converged=True</code>.
+                            The table reports the largest terminal translation
+                            and rotation errors across those 12 rows.
+                            Their maxima may occur in different phases.
+                        </p>
+
+                        <p>
+                            These are estimated camera-based convergence errors,
+                            not maximum approach errors or independent physical
+                            placement errors. Later converged rows can differ
+                            slightly as measurements continue to update.
+                            Selecting the first convergence gives a reproducible
+                            event definition.
+                        </p>
+
+                        <p>
+                            Some measurements were marked invalid, principally
+                            during initial transport before the support target
+                            was visible. Those frames are retained in the logs
+                            and are not counted as converged measurements.
+                            All 72 recorded phase blocks eventually logged
+                            convergence.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid-2 mt">
+                    <div class="card copy">
+                        <h3 class="card-title">Filter Consistency</h3>
+
+                        <p>
+                            For seed 7, mean NIS increased from 0.841 to 0.925
+                            across the three noise settings. Position-error
+                            coverage within the logged &plusmn;2&sigma; bounds
+                            ranged from 97.07% to 97.31%.
+                        </p>
+
+                        <p>
+                            These coverage values exceed the approximately
+                            95.45% expected for an ideal scalar Gaussian
+                            &plusmn;2&sigma; interval, and mean NIS values are
+                            below one. Together they suggest somewhat
+                            conservative uncertainty over these pooled windows.
+                        </p>
+
+                        <p>
+                            They do not establish perfect calibration.
+                            Temporal correlation, joint-specific behaviour and
+                            model mismatch must also be considered.
+                        </p>
+                    </div>
+
+                    <div class="card copy">
+                        <h3 class="card-title">No-Obstacle Safety Check</h3>
+
+                        <p>
+                            Across all six runs, the safety logs contain
+                            <strong>23,638 sampled frames</strong> with no active
+                            test obstacle. None recorded a confirmed detection,
+                            and all sampled safety states were
+                            <code class="inline">normal</code>.
+                        </p>
+
+                        <p>
+                            We therefore observed no confirmed false detections
+                            or sampled safety interruptions in these baseline
+                            runs. This does not prove a zero false-alarm
+                            probability in other environments, and sampled
+                            states may not capture a transient event shorter
+                            than the logging interval.
+                        </p>
+
+                        <p>
+                            Because no obstacle was spawned in this archive,
+                            these CSVs cannot measure positive detection delay,
+                            stopping response or carrying-hold drift.
+                            We report separate intrusion tests below.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card copy mt">
+                    <h3 class="card-title">
+                        Separate Intrusion and Placement Tests
+                    </h3>
+
+                    <p>
+                        In our earlier seed-7 interruption tests, the empty-gripper
+                        response logged
+                        <code class="inline">
+                            NORMAL &rarr; TRACKING &rarr; RESUMING &rarr; NORMAL
+                        </code>,
+                        and the carrying response logged
+                        <code class="inline">
+                            NORMAL &rarr; HOLDING_SAFETY_STOP &rarr;
+                            RESUMING &rarr; NORMAL
+                        </code>.
+                        We confirmed resumed stacking after removal.
+                    </p>
+
+                    <p>
+                        One combined-interruption trial also recorded an
+                        8&deg; joint-tracking-divergence recovery.
+                        We retain that event in the trial description.
+                    </p>
+
+                    <p>
+                        The earlier baseline console log explicitly confirmed
+                        all three placements and completion of the sequence.
+                        Its camera-derived XY/Z placement errors were
+                        blue: 1.5/0.1 mm; green: 2.7/0.3 mm;
+                        red: 0.6/0.4 mm.
+                        An earlier carrying-intrusion run confirmed three
+                        placements with corresponding errors of 0.5/1.6 mm,
+                        1.0/0.3 mm and 1.2/0.2 mm.
+                    </p>
+
+                    <p>
+                        Those placement measurements belong to those earlier
+                        identified trials, not the six new CSV runs. They share
+                        perception and calibration assumptions with the task
+                        and are not independent ground-truth accuracy measurements.
+                    </p>
+
+                    <p>
+                        The new CSV schemas do not record explicit final
+                        placement or sequence-completion events, so we report
+                        phase convergence separately from final-stack success.
+                    </p>
+                </div>
+
+                <h3 class="card-title mt">
+                    Final Archive and Analysis Windows
+                </h3>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Seed / noise</th>
+                                <th scope="col">Run identifier</th>
+                                <th scope="col">Analysis endpoint</th>
+                                <th scope="col">Observer log endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1 / 0.20&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_1_1793703669395500500
+                                    </code>
+                                </td>
+                                <td>258.151 s</td>
+                                <td>281.390 s</td>
+                            </tr>
+                            <tr>
+                                <td>2 / 0.20&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_2_1793704268255506100
+                                    </code>
+                                </td>
+                                <td>234.768 s</td>
+                                <td>281.660 s</td>
+                            </tr>
+                            <tr>
+                                <td>3 / 0.20&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_3_1793704968018828100
+                                    </code>
+                                </td>
+                                <td>215.271 s</td>
+                                <td>253.320 s</td>
+                            </tr>
+                            <tr>
+                                <td>7 / 0.05&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_7_1793706548638580600
+                                    </code>
+                                </td>
+                                <td>193.362 s</td>
+                                <td>243.670 s</td>
+                            </tr>
+                            <tr>
+                                <td>7 / 0.10&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_7_1793707273952706100
+                                    </code>
+                                </td>
+                                <td>194.568 s</td>
+                                <td>299.820 s</td>
+                            </tr>
+                            <tr>
+                                <td>7 / 0.20&deg;</td>
+                                <td>
+                                    <code class="inline">
+                                        seed_7_1793705488072711200
+                                    </code>
+                                </td>
+                                <td>203.010 s</td>
+                                <td>224.180 s</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="note">
+                    Archive: <code class="inline">final_test_logs.zip</code>.
+                    Each run identifier has observer, PBVS and safety CSVs.
+                    The six-run archive contains 18 CSV files.
+                    The analysis endpoint is the final phase's first convergence;
+                    the observer-log endpoint includes subsequent physics
+                    and holding time.
+                </p>
+
+                <p class="note">
+                    Earlier console trials:
+                    <code class="inline">seed_7_1793694768398746900</code>
+                    (baseline),
+                    <code class="inline">seed_7_1793698353478272700</code>
+                    (carrying intrusion), and
+                    <code class="inline">seed_7_1793699885696405900</code>
+                    (combined interruptions).
+                </p>
+
+                <div class="grid-2 mt">
+                    <div class="card copy">
+                        <h3 class="card-title">What We Learned</h3>
+
+                        <ul>
+                            <li>
+                                <strong>Position filtering:</strong>
+                                All six runs showed lower estimated position
+                                RMSE than raw encoder RMSE.
+                            </li>
+                            <li>
+                                <strong>Scene variation:</strong>
+                                At 0.20&deg;, position RMSE was similar across
+                                four seeds and all 48 PBVS phases converged.
+                            </li>
+                            <li>
+                                <strong>Noise sensitivity:</strong>
+                                Higher noise increased absolute position and
+                                velocity error even though percentage
+                                position-error reduction improved.
+                            </li>
+                            <li>
+                                <strong>Feedback and visibility:</strong>
+                                Coarse transport can continue until a support
+                                target is accepted, after which PBVS uses
+                                fresh measurements to converge.
+                            </li>
+                            <li>
+                                <strong>False-positive regression:</strong>
+                                The six baseline runs recorded no confirmed
+                                intrusions without a spawned obstacle.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card copy">
+                        <h3 class="card-title">Limits and Next Improvements</h3>
+
+                        <ul>
+                            <li>
+                                One run per configuration demonstrates these
+                                outcomes rather than a statistical guarantee
+                                of reliability.
+                            </li>
+                            <li>
+                                The noise sweep uses one scene and matched
+                                assumed/injected noise. Mismatched noise and
+                                broader combinations remain future tests.
+                            </li>
+                            <li>
+                                Independent final placement accuracy requires
+                                an evaluation-only comparison against ground
+                                truth and explicit placement/completion events.
+                            </li>
+                            <li>
+                                Numerical safety latency, stopping distance
+                                and hold drift require logs from positive
+                                intrusion trials.
+                            </li>
+                            <li>
+                                Ideal gripper-state knowledge, known calibration,
+                                rendered depth and nominal-model stability
+                                assumptions remain as documented.
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -2317,7 +2598,7 @@ python .\main.py --seed 7</code></pre>
                             <tr>
                                 <td><code class="inline">simulation.py</code></td>
                                 <td>
-                                    Builds the runtime scene, steps physics,
+                                    Builds the runtime scene, steps physics and
                                     coordinates perception, control, safety,
                                     visual verification and logs.
                                 </td>
@@ -2341,8 +2622,8 @@ python .\main.py --seed 7</code></pre>
                             <tr>
                                 <td><code class="inline">estimation.py</code></td>
                                 <td>
-                                    Noisy encoder generation, joint Kalman filters
-                                    and observer evaluation logging.
+                                    Noisy encoder generation, joint Kalman
+                                    filters and observer evaluation logging.
                                 </td>
                             </tr>
                             <tr>
@@ -2351,27 +2632,45 @@ python .\main.py --seed 7</code></pre>
                             </tr>
                             <tr>
                                 <td><code class="inline">joint_model.py</code></td>
-                                <td>Nominal model and controllability/observability checks.</td>
+                                <td>
+                                    Nominal model and controllability/
+                                    observability checks.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">joint_controller.py</code></td>
-                                <td>LQI design, nominal pole analysis and acceleration feedback.</td>
+                                <td>
+                                    LQI design, nominal pole analysis and
+                                    acceleration feedback.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">torque_controller.py</code></td>
-                                <td>Maps acceleration commands to bounded motor commands.</td>
+                                <td>
+                                    Maps acceleration commands to bounded
+                                    motor commands.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">pbvs.py</code></td>
-                                <td>Camera-frame pose corrections and Jacobian-based joint rates.</td>
+                                <td>
+                                    Camera-frame pose corrections and
+                                    Jacobian-based joint rates.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">stacking.py</code></td>
-                                <td>Task sequencing, grasping, transport, placement and verification requests.</td>
+                                <td>
+                                    Task sequencing, grasping, transport,
+                                    placement and verification requests.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">safety_monitor.py</code></td>
-                                <td>Intrusion detection, object filtering, avoidance and carrying hold.</td>
+                                <td>
+                                    Intrusion detection, object filtering,
+                                    avoidance and carrying hold.
+                                </td>
                             </tr>
                             <tr>
                                 <td><code class="inline">safety_logger.py</code></td>
@@ -2496,8 +2795,8 @@ python .\main.py --seed 7</code></pre>
                                 <li>
                                     <strong>Wrist perception and stacking:</strong>
                                     Integrated scanning, colour segmentation,
-                                    RGB-D size/pose measurement, PBVS pickup and
-                                    placement alignment, trajectory segments
+                                    RGB-D size/pose measurement, PBVS pickup
+                                    and placement alignment, trajectory segments
                                     and visual task checks.
                                 </li>
                                 <li>
@@ -2531,8 +2830,8 @@ python .\main.py --seed 7</code></pre>
                             experimental evidence. The student authors remain
                             responsible for reviewing the implementation,
                             checking mathematical claims, executing tests and
-                            ensuring that submitted descriptions and results
-                            match the project.
+                            ensuring submitted descriptions and results match
+                            the project.
                         </p>
                     </div>
                 </div>
@@ -2556,7 +2855,7 @@ python .\main.py --seed 7</code></pre>
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >Project repository</a>:
-                            implementation, configuration and project documentation.
+                            implementation, configuration and documentation.
                         </li>
                         <li>
                             <a
