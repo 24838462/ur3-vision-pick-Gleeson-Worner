@@ -609,6 +609,32 @@
         </div>
     </section>
 
+    <section id="simulation-assumptions">
+        <div class="container">
+            <div class="card">
+                <div class="card-title">
+                    Simulation Assumptions &amp; Limitations
+                </div>
+
+                <p style="color:var(--text-secondary); font-size:0.92rem;">
+                    Arm position and velocity feedback, wrist-camera kinematics
+                    and visual-servo calculations use Kalman-filter estimates
+                    derived from noisy joint encoders. Computed-torque compensation
+                    assumes known robot dynamics and ideal knowledge of the
+                    gripper's internal joint states.
+                </p>
+
+                <p style="color:var(--text-secondary); font-size:0.92rem; margin-top:1rem;">
+                    Cube localisation and task verification use RGB-D measurements.
+                    Simulator ground truth is also recorded separately for
+                    evaluation. The simulation therefore demonstrates estimated
+                    arm-state feedback, while retaining an ideal gripper-state
+                    assumption.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- Part B: Sensing & Calibration -->
     <section id="sensing">
         <div class="container">

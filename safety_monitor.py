@@ -889,6 +889,11 @@ class VisualServoingAvoidanceController:
     ) -> tuple[SafetyStatus, np.ndarray, dict]:
         self.telemetry = {}
 
+        # Use robot geometry calculated from the KF joint estimates.
+        # Keep the existing method arguments for call compatibility.
+        data = frames.kinematics
+        current_q = data.qpos[self.q_addresses].copy()
+
         if (
             target_pos_base is None
             or not np.all(np.isfinite(target_pos_base))

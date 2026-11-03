@@ -95,18 +95,40 @@ class CameraFrames:
     def _id(self, kind, name):
         return get_id(self.model, kind, name)
 
-    def update(self, sensor_data):
-        self.kinematics.qpos[self.q_addresses] = sensor_data[self.encoder_addresses]
+    def update(self, estimated_q):
+        estimated_q = np.asarray(estimated_q, dtype=float)
+
+        if (
+            estimated_q.shape != self.q_addresses.shape
+            or not np.all(np.isfinite(estimated_q))
+        ):
+            raise ValueError(
+                "CameraFrames requires finite estimated joint angles."
+            )
+
+        self.kinematics.qpos[self.q_addresses] = estimated_q
+
         mujoco.mj_kinematics(self.model, self.kinematics)
         mujoco.mj_comPos(self.model, self.kinematics)
         mujoco.mj_camlight(self.model, self.kinematics)
+
         data = self.kinematics
         base_rotation = data.xmat[self.base_id].reshape(3, 3)
-        self.position_base_camera = base_rotation.T @ (data.cam_xpos[self.camera_id] - data.xpos[self.base_id])
-        self.rotation_base_camera = base_rotation.T @ data.cam_xmat[self.camera_id].reshape(
-            3,
-            3,
-        ) @ self.optical_to_mujoco
+        camera_rotation = data.cam_xmat[self.camera_id].reshape(3, 3)
+
+        self.position_base_camera = (
+            base_rotation.T
+            @ (
+                data.cam_xpos[self.camera_id]
+                - data.xpos[self.base_id]
+            )
+        )
+
+        self.rotation_base_camera = (
+            base_rotation.T
+            @ camera_rotation
+            @ self.optical_to_mujoco
+        )
 
     def points_to_base(self, points):
         return points @ self.rotation_base_camera.T + self.position_base_camera
