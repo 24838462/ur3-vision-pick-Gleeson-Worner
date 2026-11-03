@@ -3,17 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UR3 Autonomous Vision-Guided Stacking & State Estimation | Group 32</title>
-    <meta name="description" content="41014 Sensors and Control in Mechatronics Systems - Integrated Project (Track B). Autonomous 6-DOF PBVS, Kalman Filter joint estimation, and real UR3e hardware deployment.">
 
-    <!-- Google Fonts: Inter & Outfit -->
+    <title>UR3 Autonomous Vision-Guided Stacking &amp; State Estimation | Group 32</title>
+
+    <meta
+        name="description"
+        content="41014 Sensors and Control in Mechatronics Systems: UR3 vision-guided stacking, Kalman-filter joint estimation, computed-torque LQI control, reactive safety and UR3e hardware deployment."
+    >
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Outfit:wght@500;600;700;800&amp;family=Fira+Code:wght@400;500&amp;display=swap"
+        rel="stylesheet"
+    >
 
-    <!-- MathJax for Mathematical Equations -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: [
+                    'script', 'noscript', 'style',
+                    'textarea', 'pre', 'code'
+                ]
+            }
+        };
+    </script>
+
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
 
     <style>
         :root {
@@ -46,30 +71,43 @@
             padding: 0;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 85px;
+        }
+
         body {
             font-family: var(--font-main);
             background-color: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.65;
             padding-top: 70px;
-            scroll-behavior: smooth;
         }
 
-        /* --- Sticky Navigation --- */
+        a {
+            color: var(--accent-blue);
+        }
+
+        a:focus-visible {
+            outline: 2px solid var(--accent-cyan);
+            outline-offset: 4px;
+        }
+
         .navbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 70px;
-            background: rgba(13, 17, 23, 0.85);
+            min-height: 70px;
+            background: rgba(13, 17, 23, 0.94);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border-color);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 2rem;
+            gap: 1rem;
+            padding: 0.8rem 2rem;
         }
 
         .nav-brand {
@@ -81,6 +119,7 @@
             display: flex;
             align-items: center;
             gap: 0.6rem;
+            white-space: nowrap;
         }
 
         .nav-badge {
@@ -95,16 +134,17 @@
 
         .nav-links {
             display: flex;
-            gap: 1.2rem;
+            align-items: center;
+            gap: 1rem;
             list-style: none;
         }
 
         .nav-links a {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            transition: color 0.2s ease;
+            white-space: nowrap;
         }
 
         .nav-links a:hover {
@@ -119,7 +159,6 @@
             font-weight: 600 !important;
         }
 
-        /* --- Container & Layout --- */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -131,11 +170,14 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* --- Hero Section --- */
         .hero {
             padding: 5rem 0 4rem;
             text-align: center;
-            background: radial-gradient(circle at 50% 20%, rgba(56, 139, 253, 0.12) 0%, rgba(13, 17, 23, 0) 70%);
+            background: radial-gradient(
+                circle at 50% 20%,
+                rgba(56, 139, 253, 0.12) 0%,
+                rgba(13, 17, 23, 0) 70%
+            );
         }
 
         .hero-tags {
@@ -154,10 +196,29 @@
             font-weight: 500;
         }
 
-        .tag-blue { background: rgba(56, 139, 253, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 139, 253, 0.3); }
-        .tag-purple { background: rgba(163, 113, 247, 0.15); color: var(--accent-purple); border: 1px solid rgba(163, 113, 247, 0.3); }
-        .tag-green { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid rgba(63, 185, 80, 0.3); }
-        .tag-amber { background: rgba(210, 153, 34, 0.15); color: var(--accent-amber); border: 1px solid rgba(210, 153, 34, 0.3); }
+        .tag-blue {
+            background: rgba(56, 139, 253, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid rgba(56, 139, 253, 0.3);
+        }
+
+        .tag-purple {
+            background: rgba(163, 113, 247, 0.15);
+            color: var(--accent-purple);
+            border: 1px solid rgba(163, 113, 247, 0.3);
+        }
+
+        .tag-green {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .tag-amber {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--accent-amber);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+        }
 
         .hero h1 {
             font-family: var(--font-heading);
@@ -165,7 +226,10 @@
             font-weight: 800;
             letter-spacing: -0.02em;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #ffffff 40%, var(--accent-blue) 100%);
+            background: linear-gradient(
+                135deg, #ffffff 40%, var(--accent-blue) 100%
+            );
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -173,7 +237,7 @@
         .hero-subtitle {
             font-size: 1.25rem;
             color: var(--text-secondary);
-            max-width: 820px;
+            max-width: 850px;
             margin: 0 auto 2rem;
         }
 
@@ -187,6 +251,7 @@
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
             font-size: 0.95rem;
@@ -201,16 +266,23 @@
             color: #fff;
             box-shadow: 0 4px 14px rgba(56, 139, 253, 0.35);
         }
-        .btn-primary:hover { background: #2f74d0; transform: translateY(-2px); }
+
+        .btn-primary:hover {
+            background: #2f74d0;
+            transform: translateY(-2px);
+        }
 
         .btn-secondary {
             background: var(--bg-secondary);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
         }
-        .btn-secondary:hover { background: var(--bg-card); border-color: var(--text-secondary); }
 
-        /* --- Section Titles --- */
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--text-secondary);
+        }
+
         .section-header {
             margin-bottom: 2.5rem;
         }
@@ -234,24 +306,28 @@
         .section-desc {
             color: var(--text-secondary);
             font-size: 1.05rem;
-            max-width: 750px;
+            max-width: 850px;
             margin-top: 0.5rem;
         }
 
-        /* --- Cards & Grid --- */
         .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(
+                auto-fit, minmax(min(100%, 500px), 1fr)
+            );
             gap: 1.8rem;
         }
 
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(
+                auto-fit, minmax(min(100%, 320px), 1fr)
+            );
             gap: 1.5rem;
         }
 
         .card {
+            min-width: 0;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
@@ -273,9 +349,38 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
-        /* --- Video Section --- */
+        .copy {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .copy p + p {
+            margin-top: 1rem;
+        }
+
+        .copy ul,
+        .copy ol {
+            margin: 0.8rem 0 0 1.2rem;
+        }
+
+        .copy li + li {
+            margin-top: 0.65rem;
+        }
+
+        .mt {
+            margin-top: 1.5rem;
+        }
+
+        .note {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
         .video-wrapper {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -286,13 +391,12 @@
 
         .video-frame-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             height: 0;
             background: #000;
         }
 
-        .video-frame-container iframe,
-        .video-frame-container video {
+        .video-frame-container iframe {
             position: absolute;
             top: 0;
             left: 0;
@@ -301,35 +405,22 @@
             border: none;
         }
 
-        .video-placeholder {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #11151c 0%, #1a222d 100%);
-            color: var(--text-secondary);
-            text-align: center;
-            padding: 2rem;
-        }
-
         .video-chapters {
             padding: 1.5rem 2rem;
             background: var(--bg-card);
             border-top: 1px solid var(--border-color);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(
+                auto-fit, minmax(min(100%, 240px), 1fr)
+            );
             gap: 1rem;
         }
 
-        .chapter-item {
+        .chapter-item a {
+            text-decoration: none;
             display: flex;
             gap: 0.8rem;
-            align-items: flex-start;
+            align-items: center;
         }
 
         .timestamp {
@@ -348,7 +439,6 @@
             font-weight: 500;
         }
 
-        /* --- Tables --- */
         .table-responsive {
             overflow-x: auto;
             border-radius: var(--radius-md);
@@ -376,17 +466,34 @@
             padding: 0.9rem 1.2rem;
             border-bottom: 1px solid var(--border-color);
             color: var(--text-secondary);
+            vertical-align: top;
         }
 
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        tr:last-child td {
+            border-bottom: none;
+        }
 
-        .badge-pass { color: var(--accent-green); font-weight: 600; }
-        .badge-info { color: var(--accent-blue); font-weight: 600; }
-        .placeholder-text { color: var(--accent-amber); font-family: var(--font-mono); font-size: 0.85rem; }
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
 
-        /* --- Code & Math formatting --- */
-        pre, code {
+        .badge-pass {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .badge-info {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .badge-caution {
+            color: var(--accent-amber);
+            font-weight: 600;
+        }
+
+        pre,
+        code {
             font-family: var(--font-mono);
         }
 
@@ -396,6 +503,18 @@
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
             font-size: 0.85em;
+            overflow-wrap: anywhere;
+        }
+
+        pre {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 1rem;
         }
 
         .math-block {
@@ -407,9 +526,12 @@
             overflow-x: auto;
         }
 
-        /* --- High Distinction Hardware Callout --- */
         .hd-banner {
-            background: linear-gradient(135deg, rgba(163, 113, 247, 0.12) 0%, rgba(56, 139, 253, 0.08) 100%);
+            background: linear-gradient(
+                135deg,
+                rgba(163, 113, 247, 0.12) 0%,
+                rgba(56, 139, 253, 0.08) 100%
+            );
             border: 1px solid rgba(163, 113, 247, 0.35);
             border-radius: var(--radius-lg);
             padding: 2.2rem;
@@ -428,7 +550,6 @@
             margin-bottom: 1rem;
         }
 
-        /* --- Footer --- */
         footer {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border-color);
@@ -438,25 +559,86 @@
             font-size: 0.9rem;
         }
 
-        footer a { color: var(--text-secondary); text-decoration: none; }
-        footer a:hover { color: var(--accent-blue); }
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent-blue);
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 0.65rem;
+            }
+
+            .nav-links a {
+                font-size: 0.76rem;
+            }
+
+            .nav-brand {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .nav-links {
+                display: none;
+            }
+        }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.2rem; }
-            .navbar { padding: 0 1rem; }
-            .nav-links { display: none; }
-            .grid-2 { grid-template-columns: 1fr; }
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.05rem;
+            }
+
+            .navbar {
+                padding: 0.8rem 1rem;
+            }
+
+            .card {
+                padding: 1.4rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            section {
+                padding: 3rem 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            .card,
+            .btn {
+                transition: none;
+            }
+
+            .card:hover,
+            .btn-primary:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
-<body>
 
-    <!-- Sticky Navigation Bar -->
-    <nav class="navbar">
+<body>
+    <nav class="navbar" aria-label="Main navigation">
         <a href="#" class="nav-brand">
             <span>UR3 Vision Stacking</span>
             <span class="nav-badge">Group 32</span>
         </a>
+
         <ul class="nav-links">
             <li><a href="#video">Demo Video</a></li>
             <li><a href="#modelling">Modelling</a></li>
@@ -464,14 +646,20 @@
             <li><a href="#estimation">Estimation</a></li>
             <li><a href="#control">Control</a></li>
             <li><a href="#safety">Safety Net</a></li>
-            <li><a href="#hardware">Real Hardware (HD)</a></li>
+            <li><a href="#hardware">Real Hardware</a></li>
             <li><a href="#results">Results</a></li>
             <li><a href="#team">Team</a></li>
-            <li><a href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner" class="nav-btn" target="_blank">GitHub Repo</a></li>
+            <li>
+                <a
+                    href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner"
+                    class="nav-btn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >GitHub Repo</a>
+            </li>
         </ul>
     </nav>
 
-    <!-- Hero Header -->
     <header class="hero">
         <div class="container">
             <div class="hero-tags">
@@ -480,621 +668,1974 @@
                 <span class="tag tag-green">MuJoCo Physics Engine</span>
                 <span class="tag tag-amber">UR3e Real Hardware Deployment</span>
             </div>
-            <h1>Autonomous Vision-Guided Stacking & State Estimation</h1>
+
+            <h1>Autonomous Vision-Guided Stacking &amp; State Estimation</h1>
+
             <p class="hero-subtitle">
-                A 6-DOF robotic manipulation pipeline integrating wrist-mounted RGB-D perception, a 6-channel discrete Kalman Filter joint observer, computed-torque LQI feedback control, position-based visual servoing (PBVS), and a dynamic safety net.
+                A 6-DOF manipulation pipeline combining RGB-D perception,
+                Kalman-filter joint estimation, computed-torque LQI feedback,
+                position-based visual servoing and reactive obstacle handling.
             </p>
+
             <div class="hero-cta">
-                <a href="#video" class="btn btn-primary">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/></svg>
-                    Watch 5-Min Video
+                <a href="#video" class="btn btn-primary">Watch 5-Min Video</a>
+
+                <a
+                    href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner"
+                    class="btn btn-secondary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >Source Code</a>
+
+                <a href="#modelling" class="btn btn-secondary">
+                    Read System Report
                 </a>
-                <a href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner" class="btn btn-secondary" target="_blank">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-                    Source Code
-                </a>
-                <a href="#modelling" class="btn btn-secondary">Read System Report</a>
             </div>
         </div>
     </header>
 
-    <!-- Video Showcase Section -->
-    <section id="video">
-        <div class="container">
-            <div class="section-header text-center">
-                <div class="section-eyebrow">Demonstration</div>
-                <h2 class="section-title">5-Minute Project Video Demonstration</h2>
-                <p class="section-desc">Covers end-to-end task execution in MuJoCo, state estimation with uncertainty bounds, reactive safety avoidance, and deployment on real UR3e hardware.</p>
-            </div>
-
-            <div class="video-wrapper">
-                <div class="video-frame-container">
-                    <iframe 
-                        src="https://www.youtube.com/embed/c2Uq0gsToqM" 
-                        title="UR3 Autonomous Vision-Guided Stacking & State Estimation" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        allowfullscreen>
-                    </iframe>
-                </div>
-
-                <div class="video-chapters">
-                    <div class="chapter-item">
-                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=0s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
-                            <span class="timestamp">0:00</span>
-                            <span class="chapter-title">Chapter 1: Introduction to Simulated Environment</span>
-                        </a>
-                    </div>
-                    <div class="chapter-item">
-                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=130s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
-                            <span class="timestamp">2:10</span>
-                            <span class="chapter-title">Chapter 2: Dynamic Safety System</span>
-                        </a>
-                    </div>
-                    <div class="chapter-item">
-                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=214s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
-                            <span class="timestamp">3:34</span>
-                            <span class="chapter-title">Chapter 3: Real Robot Live Demo</span>
-                        </a>
-                    </div>
-                    <div class="chapter-item">
-                        <a href="https://www.youtube.com/watch?v=c2Uq0gsToqM&t=250s" target="_blank" style="text-decoration:none; display:flex; gap:0.8rem; align-items:center;">
-                            <span class="timestamp">4:10</span>
-                            <span class="chapter-title">Chapter 4: Future Improvements & Discussion</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Part A: Modelling -->
-    <section id="modelling">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Part A &bull; 20 Marks</div>
-                <h2 class="section-title">Modelling, Controllability & Observability</h2>
-                <p class="section-desc">Mathematical derivation of the 6-joint double integrator state-space model, exact zero-order-hold discretization, and rank proofs.</p>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title">Continuous & Discrete Formulation</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 1rem;">
-                        The UR3 arm dynamics are linearized via inverse dynamics feedforward into 6 independent double integrators driven by commanded acceleration $\mathbf{u} = \ddot{\mathbf{q}}_{cmd}$:
+    <main>
+        <section id="video">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Demonstration</div>
+                    <h2 class="section-title">
+                        5-Minute Project Video Demonstration
+                    </h2>
+                    <p class="section-desc">
+                        Demonstration of simulated stacking, state estimation,
+                        reactive safety behaviour and physical UR3e deployment.
                     </p>
+                </div>
+
+                <div class="video-wrapper">
+                    <div class="video-frame-container">
+                        <iframe
+                            src="https://www.youtube.com/embed/c2Uq0gsToqM"
+                            title="UR3 Autonomous Vision-Guided Stacking and State Estimation"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+
+                    <div class="video-chapters">
+                        <div class="chapter-item">
+                            <a
+                                href="https://www.youtube.com/watch?v=c2Uq0gsToqM&amp;t=0s"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span class="timestamp">0:00</span>
+                                <span class="chapter-title">
+                                    Introduction to Simulated Environment
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="chapter-item">
+                            <a
+                                href="https://www.youtube.com/watch?v=c2Uq0gsToqM&amp;t=130s"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span class="timestamp">2:10</span>
+                                <span class="chapter-title">
+                                    Dynamic Safety System
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="chapter-item">
+                            <a
+                                href="https://www.youtube.com/watch?v=c2Uq0gsToqM&amp;t=214s"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span class="timestamp">3:34</span>
+                                <span class="chapter-title">
+                                    Real Robot Live Demo
+                                </span>
+                            </a>
+                        </div>
+
+                        <div class="chapter-item">
+                            <a
+                                href="https://www.youtube.com/watch?v=c2Uq0gsToqM&amp;t=250s"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <span class="timestamp">4:10</span>
+                                <span class="chapter-title">
+                                    Future Improvements &amp; Discussion
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="modelling">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Part A &bull; Modelling</div>
+                    <h2 class="section-title">
+                        Modelling, Controllability &amp; Observability
+                    </h2>
+                    <p class="section-desc">
+                        A nonlinear MuJoCo robot model supports a nominal
+                        acceleration-input model for observer and controller design.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Physical Model and Nominal Approximation
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                MuJoCo simulates the robot, Robotiq 2F-85 gripper,
+                                mounted camera, contact geometry and movable cubes.
+                                The arm has six directly actuated joints.
+                            </p>
+
+                            <p>
+                                The mechanical model has coupled dynamics:
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathbf{M}(\mathbf{q})\ddot{\mathbf{q}}
+                            + \mathbf{h}(\mathbf{q},\dot{\mathbf{q}})
+                            =
+                            \boldsymbol{\tau}
+                            + \boldsymbol{\tau}_{passive}
+                            + \boldsymbol{\tau}_{external}$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                Computed-torque compensation uses the model to
+                                approximate six independent double integrators.
+                                This approximation assumes sufficiently accurate
+                                dynamics and excludes uncompensated contact loads
+                                and saturation.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathbf{x} =
+                            \begin{bmatrix}
+                                \mathbf{q}\\
+                                \dot{\mathbf{q}}
+                            \end{bmatrix}
+                            \in \mathbb{R}^{12},
+                            \qquad
+                            \mathbf{u}=\ddot{\mathbf{q}}_{cmd}
+                            \in \mathbb{R}^{6}$$
+
+                            $$\dot{\mathbf{x}} =
+                            \underbrace{
+                            \begin{bmatrix}
+                                \mathbf{0}_6 &amp; \mathbf{I}_6\\
+                                \mathbf{0}_6 &amp; \mathbf{0}_6
+                            \end{bmatrix}}_{\mathbf{A}}\mathbf{x}
+                            +
+                            \underbrace{
+                            \begin{bmatrix}
+                                \mathbf{0}_6\\
+                                \mathbf{I}_6
+                            \end{bmatrix}}_{\mathbf{B}}\mathbf{u}$$
+
+                            $$\mathbf{y} =
+                            \underbrace{
+                            \begin{bmatrix}
+                                \mathbf{I}_6 &amp; \mathbf{0}_6
+                            \end{bmatrix}}_{\mathbf{C}}\mathbf{x}
+                            + \mathbf{v},
+                            \qquad \mathbf{D}=\mathbf{0}$$
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Discrete Model and Rank Checks
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                The nominal controller interval is
+                                $T_s=0.010\,\mathrm{s}$, or $100\,\mathrm{Hz}$.
+                                Exact zero-order-hold discretisation gives:
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathbf{A}_d =
+                            \begin{bmatrix}
+                                \mathbf{I}_6 &amp; T_s\mathbf{I}_6\\
+                                \mathbf{0}_6 &amp; \mathbf{I}_6
+                            \end{bmatrix},
+                            \qquad
+                            \mathbf{B}_d =
+                            \begin{bmatrix}
+                                \frac{1}{2}T_s^2\mathbf{I}_6\\
+                                T_s\mathbf{I}_6
+                            \end{bmatrix}$$
+
+                            $$\mathbf{B}_d =
+                            \begin{bmatrix}
+                                5\times10^{-5}\mathbf{I}_6\\
+                                0.01\mathbf{I}_6
+                            \end{bmatrix}$$
+                        </div>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Check</th>
+                                        <th scope="col">Rank</th>
+                                        <th scope="col">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Controllability</td>
+                                        <td>12 / 12</td>
+                                        <td class="badge-pass">
+                                            Nominal model controllable
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Observability</td>
+                                        <td>12 / 12</td>
+                                        <td class="badge-pass">
+                                            Nominal model observable
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathcal{C} =
+                            \begin{bmatrix}
+                                \mathbf{B}_d &amp;
+                                \mathbf{A}_d\mathbf{B}_d &amp;
+                                \cdots &amp;
+                                \mathbf{A}_d^{11}\mathbf{B}_d
+                            \end{bmatrix}$$
+
+                            $$\mathcal{O} =
+                            \begin{bmatrix}
+                                \mathbf{C}\\
+                                \mathbf{C}\mathbf{A}_d\\
+                                \vdots\\
+                                \mathbf{C}\mathbf{A}_d^{11}
+                            \end{bmatrix}$$
+                        </div>
+
+                        <p class="note">
+                            Verified by <code class="inline">joint_model.py</code>.
+                            Successive position measurements reveal velocity in
+                            this nominal model. These rank results do not prove
+                            that every Cartesian pose is reachable or that the
+                            full robot remains stable during contact.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Process</th>
+                                <th scope="col">Configured interval</th>
+                                <th scope="col">Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Physics</td>
+                                <td>1 ms</td>
+                                <td>MuJoCo dynamics and contact integration</td>
+                            </tr>
+                            <tr>
+                                <td>Arm controller and joint observer</td>
+                                <td>10 ms, approximately 100 Hz</td>
+                                <td>Estimated joint feedback and motor commands</td>
+                            </tr>
+                            <tr>
+                                <td>RGB-D perception</td>
+                                <td>Approximately 15 Hz</td>
+                                <td>
+                                    Detection, pose estimation, PBVS updates
+                                    and safety monitoring
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="note">
+                    These intervals refer to simulation time. Display speed can
+                    change wall-clock execution speed without changing the
+                    configured simulation timestep.
+                </p>
+            </div>
+        </section>
+
+        <section id="simulation-assumptions">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Scope and limitations</div>
+                    <h2 class="section-title">
+                        Simulation Assumptions &amp; Limitations
+                    </h2>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Estimated States and Ground Truth
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                Arm feedback uses Kalman-filter estimates derived
+                                from noisy joint encoders. Estimated arm angles
+                                also drive wrist-camera forward kinematics,
+                                PBVS geometry and operational settling checks.
+                            </p>
+
+                            <p>
+                                Cube localisation, size ordering and pickup,
+                                transport-clearance and placement verification
+                                use RGB-D measurements. Spawn coordinates are
+                                used to construct the scene, rather than being
+                                supplied as task targets.
+                            </p>
+
+                            <p>
+                                Simulator ground truth is recorded separately
+                                for evaluation. Computed-torque compensation
+                                still assumes ideal knowledge of the gripper's
+                                internal joint states, while replacing the arm
+                                states with observer estimates.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Perception and Dynamics Assumptions
+                        </h3>
+
+                        <div class="copy">
+                            <ul>
+                                <li>
+                                    Camera intrinsics and rigid mounting
+                                    transforms are known from the model.
+                                    The overhead camera and robot base are fixed.
+                                </li>
+                                <li>
+                                    The tabletop height is known. Cube measurement
+                                    assumes upright cubes with sufficiently
+                                    visible, approximately horizontal top faces.
+                                </li>
+                                <li>
+                                    Colour segmentation assumes one distinguishable
+                                    cube per configured colour. Accepted cube
+                                    sizes are bounded by the detector's configured
+                                    range of approximately 15–75 mm.
+                                </li>
+                                <li>
+                                    Depth is rendered without added depth noise.
+                                    Visibility, occlusion and rejected surface
+                                    fits can still interrupt measurements.
+                                </li>
+                                <li>
+                                    Robot inertial and passive-force parameters
+                                    are treated as known. Contact loads, payload
+                                    changes and torque clipping limit the accuracy
+                                    of the nominal compensation model.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sensing">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Part B &bull; Sensing</div>
+                    <h2 class="section-title">
+                        Sensing, Calibration &amp; Frame Transformations
+                    </h2>
+                    <p class="section-desc">
+                        RGB-D back-projection, estimated camera pose and
+                        stable top-face measurements provide task targets.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">
+                            From Depth Pixels to Robot Coordinates
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                The wrist camera renders RGB and metric depth
+                                at $320\times240$ pixels. For the ideal simulated
+                                pinhole camera, focal length is calculated from
+                                its vertical field of view and image height.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$f_x=f_y=
+                            \frac{H}{2\tan(\mathrm{fovy}/2)},
+                            \qquad
+                            c_x=\frac{W-1}{2},
+                            \quad
+                            c_y=\frac{H-1}{2}$$
+
+                            $$\mathbf{p}_{opt} =
+                            \begin{bmatrix}
+                                (u-c_x)z/f_x\\
+                                (v-c_y)z/f_y\\
+                                z
+                            \end{bmatrix}$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                Optical coordinates use X right, Y down and Z
+                                forward. MuJoCo camera coordinates use X right,
+                                Y up and Z backward, requiring an explicit
+                                axis conversion.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathbf{R}_{cam,opt}
+                            =\operatorname{diag}(1,-1,-1)$$
+
+                            $$\begin{bmatrix}
+                                \mathbf{p}_{base}\\1
+                            \end{bmatrix}
+                            =
+                            \mathbf{T}_{base,tool}(\hat{\mathbf{q}})
+                            \mathbf{T}_{tool,cam}
+                            \mathbf{T}_{cam,opt}
+                            \begin{bmatrix}
+                                \mathbf{p}_{opt}\\1
+                            \end{bmatrix}$$
+                        </div>
+
+                        <p class="note">
+                            <code class="inline">CameraFrames</code> calculates
+                            camera geometry in a separate MuJoCo data object using
+                            estimated joint angles. The overhead camera uses its
+                            known fixed extrinsic transform.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Detection, Size Measurement and Stability
+                        </h3>
+
+                        <div class="copy">
+                            <ol>
+                                <li>
+                                    <strong>Segment colours:</strong>
+                                    HSV masks identify red, green, blue and
+                                    purple regions. Morphological opening removes
+                                    small components; erosion reduces mixed
+                                    object/background depth at boundaries.
+                                </li>
+                                <li>
+                                    <strong>Recover a point cloud:</strong>
+                                    Valid depth pixels are back-projected and
+                                    transformed into the robot base frame.
+                                </li>
+                                <li>
+                                    <strong>Isolate a top face:</strong>
+                                    A slice near the 90th percentile of
+                                    base-frame height is fitted using SVD.
+                                    The normal must be within 10 degrees of vertical.
+                                </li>
+                                <li>
+                                    <strong>Measure the square:</strong>
+                                    A fitted rectangle estimates top-face centre,
+                                    side length and yaw. Cube height is inferred
+                                    from the cube-shape assumption.
+                                </li>
+                                <li>
+                                    <strong>Require stable measurements:</strong>
+                                    Cube records require 10 accepted consecutive
+                                    frames, centre deviations and size spread
+                                    within 2 mm, and symmetry-aware yaw deviations
+                                    within 5 degrees.
+                                </li>
+                            </ol>
+
+                            <p>
+                                Measured sizes determine the largest-to-smallest
+                                stacking order. Colour identifies each object;
+                                it does not determine its measured size.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\Delta\theta =
+                            \left(
+                                \theta-\theta_{ref}+\frac{\pi}{4}
+                            \right)
+                            \bmod\frac{\pi}{2}
+                            -\frac{\pi}{4}$$
+                        </div>
+
+                        <p class="note">
+                            Fourfold square symmetry avoids unnecessary
+                            90-degree wrist rotations. The purple marker has a
+                            configured expected width; support-face checks also
+                            use the size previously measured from vision.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Visual Verification of Task Progress
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            After lifting, after transport and after release,
+                            the task requests fresh cube measurements. The
+                            overhead image is checked first, followed by the
+                            wrist image if needed. A top-face measurement is
+                            converted to an estimated cube centre using the
+                            previously measured side length.
+                        </p>
+
+                        <p>
+                            Verification requires five recent visual samples
+                            with a maximum deviation of 5 mm from their median.
+                            Missing or rejected observations do not count as
+                            success. The task stops if verification times out.
+                        </p>
+
+                        <p>
+                            Lift and post-transport checks confirm clearance at
+                            those checkpoints; they are not continuous slip
+                            detection. Placement is accepted within the current
+                            configured tolerances of 25 mm horizontally and
+                            20 mm vertically. Actual observed errors for the
+                            documented runs are reported separately below.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estimation">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Part C &bull; Estimation</div>
+                    <h2 class="section-title">
+                        Kalman-Filter Joint State Estimation
+                    </h2>
+                    <p class="section-desc">
+                        Six two-state filters estimate arm position and velocity
+                        from noisy joint-position measurements and nominal
+                        commanded acceleration.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Measurement Noise and Prediction Model
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                Each encoder measurement is perturbed by
+                                independent zero-mean Gaussian noise. The
+                                documented final configuration uses a standard
+                                deviation of $0.20^\circ$.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$y_k=q_k+\nu_k,
+                            \qquad
+                            \nu_k\sim\mathcal{N}(0,R)$$
+
+                            $$R =
+                            \left(0.20\frac{\pi}{180}\right)^2
+                            \approx 1.218\times10^{-5}\,\mathrm{rad}^2$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                For each joint,
+                                $\mathbf{x}_k=[q_k,\dot q_k]^T$.
+                                The filter predicts using the nominal
+                                acceleration command from the preceding interval.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\hat{\mathbf{x}}_{k|k-1}
+                            =
+                            \mathbf{A}\hat{\mathbf{x}}_{k-1|k-1}
+                            +\mathbf{B}u_{k-1}$$
+
+                            $$\mathbf{A} =
+                            \begin{bmatrix}
+                                1 &amp; \Delta t\\
+                                0 &amp; 1
+                            \end{bmatrix},
+                            \qquad
+                            \mathbf{B} =
+                            \begin{bmatrix}
+                                \frac{1}{2}\Delta t^2\\
+                                \Delta t
+                            \end{bmatrix}$$
+
+                            $$\mathbf{Q}
+                            =\sigma_a^2\mathbf{B}\mathbf{B}^T,
+                            \qquad
+                            \sigma_a=2.0\,\mathrm{rad/s^2}$$
+                        </div>
+
+                        <p class="note">
+                            Process uncertainty represents differences between
+                            commanded and realised acceleration, including
+                            uncompensated loads. The supplied acceleration is a
+                            model input, not a ground-truth acceleration sensor.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Correction, Covariance and Evaluation
+                        </h3>
+
+                        <div class="math-block">
+                            $$r_k =
+                            y_k-\mathbf{C}\hat{\mathbf{x}}_{k|k-1},
+                            \qquad \mathbf{C}=[1\quad0]$$
+
+                            $$S_k =
+                            \mathbf{C}\mathbf{P}_{k|k-1}\mathbf{C}^T+R,
+                            \qquad
+                            \mathbf{K}_k =
+                            \mathbf{P}_{k|k-1}\mathbf{C}^T S_k^{-1}$$
+
+                            $$\hat{\mathbf{x}}_{k|k}
+                            =
+                            \hat{\mathbf{x}}_{k|k-1}
+                            +\mathbf{K}_k r_k$$
+
+                            $$\mathbf{P}_{k|k}
+                            =
+                            (\mathbf{I}-\mathbf{K}_k\mathbf{C})
+                            \mathbf{P}_{k|k-1}
+                            (\mathbf{I}-\mathbf{K}_k\mathbf{C})^T
+                            +\mathbf{K}_kR\mathbf{K}_k^T$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                The Joseph covariance update improves numerical
+                                robustness. Estimates feed the arm controller and
+                                wrist-camera kinematics. Simulator position and
+                                velocity are used separately to calculate errors.
+                            </p>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            Seed-7 baseline metric
+                                        </th>
+                                        <th scope="col">Approximate value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Raw encoder position RMSE</td>
+                                        <td>$0.200^\circ$</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Estimated position RMSE</td>
+                                        <td>$0.096^\circ$</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Position RMSE reduction</td>
+                                        <td class="badge-pass">52%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Estimated velocity RMSE</td>
+                                        <td>$0.0266\,\mathrm{rad/s}$</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="note">
+                            Values are rounded cumulative console metrics near
+                            completion of the baseline task, pooled across six
+                            joints. Additional stationary holding changes the
+                            cumulative metric and should not be confused with
+                            task-only performance.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Statistical Consistency and Tuning Trade-Off
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            The observer logs covariance, estimation errors and
+                            normalised innovation squared:
+                            $\mathrm{NIS}_k=r_k^2/S_k$.
+                            Under a correctly specified scalar Gaussian model,
+                            NIS has a theoretical mean of one. A mean near one
+                            alone does not establish statistical consistency;
+                            distribution, temporal correlation and uncertainty
+                            coverage must also be examined.
+                        </p>
+
+                        <p>
+                            Increasing assumed measurement variance generally
+                            reduces reliance on individual encoder readings.
+                            Increasing process variance makes the filter more
+                            responsive to unmodelled acceleration. Both choices
+                            affect noise suppression and tracking responsiveness.
+                            A precise phase-lag value is not claimed without a
+                            dedicated timing experiment.
+                        </p>
+
+                        <p>
+                            Increasing simulated noise and increasing the
+                            filter's assumed measurement variance are separate
+                            changes. Earlier noise-level experiments should be
+                            identified by their code version and configuration
+                            before comparison with final estimated-feedback runs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="control">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Part D &bull; Control</div>
+                    <h2 class="section-title">
+                        Computed-Torque LQI and Visual Servoing
+                    </h2>
+                    <p class="section-desc">
+                        Estimated joint feedback regulates arm motion, while
+                        fresh RGB-D measurements correct task-space alignment.
+                    </p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Computed-Torque LQI Regulator
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                The nominal 12-state model is augmented with six
+                                integrated position-error states. Discrete LQR
+                                design on this 18-state system gives LQI feedback.
+                            </p>
+                        </div>
+
+                        <div class="math-block">
+                            $$\mathbf{e}_q =
+                            \mathbf{q}_{des}-\hat{\mathbf{q}},
+                            \qquad
+                            \mathbf{e}_v =
+                            \dot{\mathbf{q}}_{des}
+                            -\hat{\dot{\mathbf{q}}}$$
+
+                            $$\mathbf{z}_{k+1}
+                            =
+                            \mathbf{z}_k+T_s\mathbf{e}_{q,k}$$
+
+                            $$\ddot{\mathbf{q}}_{cmd}
+                            =
+                            \ddot{\mathbf{q}}_{des}
+                            +\mathbf{K}_q\mathbf{e}_q
+                            +\mathbf{K}_v\mathbf{e}_v
+                            +\mathbf{K}_i\mathbf{z}$$
+
+                            $$\boldsymbol{\tau}_{req}
+                            =
+                            \left[
+                                \mathbf{M}(\hat{\mathbf{q}}_{full})
+                                \ddot{\mathbf{q}}_{full,cmd}
+                                +\mathbf{h}
+                                -\boldsymbol{\tau}_{passive}
+                            \right]_{arm}$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                The dynamics calculation replaces arm states
+                                with observer estimates while retaining simulator
+                                states for the remaining degrees of freedom.
+                                Non-arm commanded accelerations are set to zero.
+                            </p>
+
+                            <p>
+                                At a 10 ms sample interval, the identical
+                                nominal joint gains are approximately
+                                $K_q=29.3648$, $K_v=8.5409$ and $K_i=21.9352$.
+                                The design uses error and input scales in
+                                <code class="inline">joint_controller.py</code>.
+                            </p>
+
+                            <p>
+                                Acceleration is clipped to
+                                $\pm2\,\mathrm{rad/s^2}$.
+                                Integral states are limited, and integration
+                                that would worsen acceleration saturation is
+                                blocked. Motor commands are separately clipped
+                                to actuator control limits.
+                            </p>
+                        </div>
+
+                        <p class="note">
+                            The acceleration anti-windup logic does not explicitly
+                            compensate subsequent motor-torque clipping.
+                            Saturation and tracking must therefore be evaluated
+                            in the full simulation.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Nominal Stability and Practical Limits
+                        </h3>
+
+                        <div class="math-block">
+                            $$\mathbf{A}_{cl}
+                            =
+                            \mathbf{A}_{aug}
+                            -\mathbf{B}_{aug}\mathbf{K}$$
+
+                            $$\max_i|\lambda_i(\mathbf{A}_{cl})|
+                            \approx0.989901\lt1$$
+                        </div>
+
+                        <div class="copy">
+                            <p>
+                                The pole calculation establishes asymptotic
+                                stability of the unsaturated nominal discrete
+                                LQI model for a fixed reference.
+                            </p>
+
+                            <p>
+                                It does not prove global stability of the full
+                                robot, observer-controller combination, contact
+                                transitions, safety switching or moving
+                                trajectory tracking. Those behaviours require
+                                simulation experiments.
+                            </p>
+
+                            <p>
+                                Integral action reduces persistent position
+                                error caused by imperfect compensation.
+                                Observation and task settling use estimated
+                                position error and a rolling RMS velocity check,
+                                rather than demanding every noisy instantaneous
+                                velocity sample remain below a threshold.
+                            </p>
+
+                            <p>
+                                Joint tracking divergence and non-finite states
+                                are monitored. A recovery event is reported as
+                                an event in the trial, rather than treating that
+                                trial as uninterrupted nominal operation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Camera-Frame Position-Based Visual Servoing
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            PBVS uses fresh RGB-D target position and yaw.
+                            The known camera-to-pinch transform converts a desired
+                            grasp or placement pose into a desired camera pose.
+                            Estimated forward kinematics provide the camera
+                            Jacobian and current pose.
+                        </p>
+
+                        <p>
+                            Let $\mathbf{t}_c,\mathbf{R}_c$ describe the observed
+                            target in the current optical frame, and
+                            $\mathbf{t}_d,\mathbf{R}_d$ describe the target in
+                            the desired camera frame. The implementation forms:
+                        </p>
+                    </div>
+
                     <div class="math-block">
-                        $$\mathbf{x} = \begin{bmatrix} \mathbf{q} \\ \dot{\mathbf{q}} \end{bmatrix} \in \mathbb{R}^{12}, \quad \mathbf{u} = \ddot{\mathbf{q}}_{cmd} \in \mathbb{R}^6, \quad \mathbf{y} = \mathbf{q}_{enc} \in \mathbb{R}^6$$
-                        $$\dot{\mathbf{x}}(t) = \begin{bmatrix} \mathbf{0}_6 & \mathbf{I}_6 \\ \mathbf{0}_6 & \mathbf{0}_6 \end{bmatrix} \mathbf{x}(t) + \begin{bmatrix} \mathbf{0}_6 \\ \mathbf{I}_6 \end{bmatrix} \mathbf{u}(t), \quad \mathbf{y}(t) = \begin{bmatrix} \mathbf{I}_6 & \mathbf{0}_6 \end{bmatrix} \mathbf{x}(t)$$
-                    </div>
-                    <p style="color:var(--text-secondary); margin-top: 1rem;">
-                        Under exact zero-order hold ($T_s = 0.010\text{ s}$, $100\text{ Hz}$):
-                    </p>
-                    <div class="math-block">
-                        $$\mathbf{A}_d = \begin{bmatrix} \mathbf{I}_6 & 0.01\mathbf{I}_6 \\ \mathbf{0}_6 & \mathbf{I}_6 \end{bmatrix}, \quad \mathbf{B}_d = \begin{bmatrix} 5\times 10^{-5}\mathbf{I}_6 \\ 0.01\mathbf{I}_6 \end{bmatrix}, \quad \mathbf{C} = \begin{bmatrix} \mathbf{I}_6 & \mathbf{0}_6 \end{bmatrix}$$
-                    </div>
-                </div>
+                        $$\mathbf{e}_t =
+                        \mathbf{t}_c-\mathbf{t}_d,
+                        \qquad
+                        \mathbf{e}_R =
+                        \operatorname{rotvec}
+                        \left(\mathbf{R}_c\mathbf{R}_d^T\right)$$
 
-                <div class="card">
-                    <div class="card-title">Controllability & Observability Analysis</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 1rem;">
-                        Evaluated analytically and verified numerically in <code class="inline">joint_model.py</code>:
-                    </p>
-                    <div class="table-responsive" style="margin: 0.5rem 0;">
+                        $$\boldsymbol{\omega}
+                        =g\mathbf{e}_R,
+                        \qquad
+                        \mathbf{v}
+                        =g\mathbf{e}_t
+                        +\mathbf{t}_c\times\boldsymbol{\omega}$$
+
+                        $$\dot{\mathbf{q}}
+                        =
+                        \mathbf{J}_w^T
+                        \left(
+                            \mathbf{J}_w\mathbf{J}_w^T
+                            +\lambda^2\mathbf{I}
+                        \right)^{-1}
+                        \boldsymbol{\xi}_w$$
+                    </div>
+
+                    <div class="copy">
+                        <p>
+                            Angular rows of the optical-frame Jacobian and
+                            command are weighted by 0.15. Damping is fixed at
+                            $\lambda=0.005$. Camera linear speed, angular speed
+                            and joint rates are bounded by phase-specific limits.
+                        </p>
+                    </div>
+
+                    <div class="table-responsive">
                         <table>
                             <thead>
-                                <tr><th>Matrix</th><th>Equation</th><th>Rank</th><th>Status</th></tr>
+                                <tr>
+                                    <th scope="col">Phase</th>
+                                    <th scope="col">Gain</th>
+                                    <th scope="col">Linear speed limit</th>
+                                    <th scope="col">Angular speed limit</th>
+                                    <th scope="col">Joint-rate limit</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><strong>Controllability</strong></td>
-                                    <td>$\mathcal{C} = [\mathbf{B}_d, \mathbf{A}_d\mathbf{B}_d, \dots, \mathbf{A}_d^{11}\mathbf{B}_d]$</td>
-                                    <td>12 / 12</td>
-                                    <td><span class="badge-pass">&check; FULLY CONTROLLABLE</span></td>
+                                    <td>Pickup approach</td>
+                                    <td>0.8</td>
+                                    <td>0.025 m/s</td>
+                                    <td>0.15 rad/s</td>
+                                    <td>0.35 rad/s</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Observability</strong></td>
-                                    <td>$\mathcal{O} = [\mathbf{C}^T, (\mathbf{C}\mathbf{A}_d)^T, \dots, (\mathbf{C}\mathbf{A}_d^{11})^T]^T$</td>
-                                    <td>12 / 12</td>
-                                    <td><span class="badge-pass">&check; FULLY OBSERVABLE</span></td>
+                                    <td>Pickup descent</td>
+                                    <td>0.8</td>
+                                    <td>0.015 m/s</td>
+                                    <td>0.35 rad/s</td>
+                                    <td>0.60 rad/s</td>
+                                </tr>
+                                <tr>
+                                    <td>Placement transport and alignment</td>
+                                    <td>0.5</td>
+                                    <td>0.020 m/s</td>
+                                    <td>0.15 rad/s</td>
+                                    <td>0.25 rad/s</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <p style="color:var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
-                        <strong>Physical Meaning:</strong> Position directly reflects velocity over $T_s$. Measuring 6 scalar joint encoders enables full reconstructibility of all 12 states without unobservable hidden modes.
+
+                    <p class="note">
+                        Missing or rejected measurements produce zero PBVS
+                        command for that update. Persistent loss can pause the
+                        phase or invoke the task's recovery handling. Lower gains
+                        and speed limits reduce commanded motion near objects,
+                        but do not guarantee an overshoot-free response.
                     </p>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <section id="simulation-assumptions">
-        <div class="container">
-            <div class="card">
-                <div class="card-title">
-                    Simulation Assumptions &amp; Limitations
-                </div>
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Hybrid Task Sequence
+                    </h3>
 
-                <p style="color:var(--text-secondary); font-size:0.92rem;">
-                    Arm position and velocity feedback, wrist-camera kinematics
-                    and visual-servo calculations use Kalman-filter estimates
-                    derived from noisy joint encoders. Computed-torque compensation
-                    assumes known robot dynamics and ideal knowledge of the
-                    gripper's internal joint states.
-                </p>
-
-                <p style="color:var(--text-secondary); font-size:0.92rem; margin-top:1rem;">
-                    Cube localisation and task verification use RGB-D measurements.
-                    Simulator ground truth is also recorded separately for
-                    evaluation. The simulation therefore demonstrates estimated
-                    arm-state feedback, while retaining an ideal gripper-state
-                    assumption.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Part B: Sensing & Calibration -->
-    <section id="sensing">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Part B &bull; 20 Marks</div>
-                <h2 class="section-title">Sensing, Calibration & Frame Transformations</h2>
-                <p class="section-desc">Coordinate frame tree, 3D point cloud back-projection, SVD surface normal consistency, and noise suppression.</p>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title">Coordinate Frame Hierarchy</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 1rem;">
-                        Rigid body transformations map camera rays into manipulator base space:
-                    </p>
-                    <div class="math-block" style="font-family: var(--font-mono); font-size: 0.88rem;">
-                        {World: W} ──► {Base: B} ──(FK: q)──► {Flange: E} ──► {Camera: C} ──► {Target: O}
-                                                                    │
-                                                                    └──► {Tool Pinch: P} (TCP +195mm)
-                    </div>
-                    <div class="math-block">
-                        $$\mathbf{p}_{base} = \mathbf{T}_{base}^{flange}(\mathbf{q}) \cdot \mathbf{T}_{flange}^{cam} \cdot \mathbf{T}_{cam}^{opt} \cdot \begin{bmatrix} \frac{(u - c_x)z}{f_x} & \frac{(v - c_y)z}{f_y} & z & 1 \end{bmatrix}^T$$
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Computer Vision & Stability Filtering</div>
-                    <ul style="color:var(--text-secondary); margin-left: 1.2rem; font-size: 0.95rem;">
-                        <li style="margin-bottom: 0.6rem;"><strong>HSV Segmentation:</strong> Color masks with morphological opening ($3\times 3$) to eliminate camera noise spikes.</li>
-                        <li style="margin-bottom: 0.6rem;"><strong>Top-Face Isolation:</strong> Slices points in the 90th percentile of depth; fits plane normal vector $\mathbf{n}$ using SVD to confirm tabletop horizontal alignment.</li>
-                        <li style="margin-bottom: 0.6rem;"><strong>4-Fold Cube Symmetry:</strong> Wraps yaw angle modulo $\pi/2$ so the robot never executes unnecessary wrist spins:
-                            $$\theta_{sym} = \left(\theta + \frac{\pi}{4}\right) \bmod \frac{\pi}{2} - \frac{\pi}{4}$$
-                        </li>
-                        <li><strong>Multi-Frame Lock:</strong> Requires 10 consecutive frames meeting variance threshold ($< 2\text{ mm}$ position, $< 5^\circ$ yaw) before locking target coordinates.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Part C: Estimation & Kalman Filter -->
-    <section id="estimation">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Part C &bull; 20 Marks</div>
-                <h2 class="section-title">State Estimation & Kalman Filter Observer</h2>
-                <p class="section-desc">6-channel discrete Kalman Filter estimating positions and velocities from noisy encoders ($0.20^\circ$ noise) with dynamic covariance envelopes.</p>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title">Filter Formulation & Tuning Matrices</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 0.8rem;">
-                        Decoupled 2-state discrete Kalman filters per joint with Joseph form covariance stabilization:
-                    </p>
-                    <div class="math-block">
-                        $$\mathbf{Q} = \sigma_a^2 \mathbf{B}_d \mathbf{B}_d^T = (2.0)^2 \begin{bmatrix} 0.25 T_s^4 & 0.5 T_s^3 \\ 0.5 T_s^3 & T_s^2 \end{bmatrix}, \quad \sigma_a = 2.0\text{ rad/s}^2$$
-                        $$\mathbf{R} = \sigma_{enc}^2 = (\text{deg2rad}(0.20^\circ))^2 \approx 1.218 \times 10^{-5}\text{ rad}^2$$
-                        $$\mathbf{P}_{k|k} = (\mathbf{I} - \mathbf{K}_k \mathbf{C}) \mathbf{P}_{k|k-1} (\mathbf{I} - \mathbf{K}_k \mathbf{C})^T + \mathbf{K}_k \mathbf{R} \mathbf{K}_k^T$$
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Filter Performance & Statistical Consistency</div>
-                    <div class="table-responsive" style="margin: 0.5rem 0;">
+                    <div class="table-responsive">
                         <table>
                             <thead>
-                                <tr><th>Metric</th><th>Raw Encoder</th><th>Kalman Filter</th><th>Improvement</th></tr>
+                                <tr>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Motion method</th>
+                                    <th scope="col">Measurement role</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><strong>Position Noise (RMSE)</strong></td>
-                                    <td>$0.200^\circ$</td>
-                                    <td>$0.095^\circ$</td>
-                                    <td><span class="badge-pass">52.5% Noise Reduction</span></td>
+                                    <td>Workspace search and reacquisition</td>
+                                    <td>
+                                        IK, joint trajectories and interpolated
+                                        search paths
+                                    </td>
+                                    <td>
+                                        Build a visual catalogue and obtain
+                                        fresh target measurements
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Velocity Reconstruction</strong></td>
-                                    <td>Spikes ($> 2.5\text{ rad/s}$)</td>
-                                    <td>$0.029\text{ rad/s}$</td>
-                                    <td><span class="badge-pass">Smooth, zero spikes</span></td>
+                                    <td>Pickup approach and descent</td>
+                                    <td>PBVS</td>
+                                    <td>
+                                        Repeated target pose updates correct
+                                        alignment until convergence
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Avg. NIS Consistency</strong></td>
-                                    <td>&mdash;</td>
-                                    <td>$0.94$</td>
-                                    <td><span class="badge-pass">Matches $\chi_1^2$ theoretical expectation</span></td>
+                                    <td>Close gripper, lift and move inward</td>
+                                    <td>
+                                        Gripper command ramp and planned
+                                        arm trajectories
+                                    </td>
+                                    <td>Fresh visual lift verification</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>$2\sigma$ Boundary Containment</strong></td>
-                                    <td>&mdash;</td>
-                                    <td>$98.2\%$</td>
-                                    <td><span class="badge-pass">Consistent & well-calibrated</span></td>
+                                    <td>Transport toward placement region</td>
+                                    <td>
+                                        Trajectory until support target is
+                                        visible, then PBVS transport
+                                    </td>
+                                    <td>
+                                        Live target measurements guide the
+                                        final transport correction
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Placement alignment</td>
+                                    <td>PBVS</td>
+                                    <td>
+                                        Track purple for the first cube,
+                                        then the visible support cube
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Lower, release and withdraw</td>
+                                    <td>Planned trajectories</td>
+                                    <td>
+                                        Fresh visual placement verification
+                                        after withdrawal
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <p class="note">
+                        The system combines visual feedback with planned motion.
+                        It does not claim continuous PBVS during every lift,
+                        lowering or withdrawal segment. Nominal PBVS completion
+                        requires five accepted consecutive frames within the
+                        phase's position and orientation tolerances.
+                    </p>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Part D: Controller Design -->
-    <section id="control">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Part D &bull; 20 Marks</div>
-                <h2 class="section-title">Controller Design, Tuning & Tracking</h2>
-                <p class="section-desc">Computed-Torque LQI state feedback with anti-windup clamping and 6-DOF Position-Based Visual Servoing (PBVS).</p>
-            </div>
-
-            <div class="grid-2">
-                <div class="card">
-                    <div class="card-title">Computed-Torque LQI Regulator</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 0.8rem;">
-                        Combines full inverse dynamics compensation with optimal feedback on state error $e = \hat{x} - x_{des}$:
+        <section id="safety">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Part E &bull; Integration</div>
+                    <h2 class="section-title">
+                        Reactive Safety Supervisor
+                    </h2>
+                    <p class="section-desc">
+                        Camera-based intrusion detection interrupts the task,
+                        tracks an obstacle when empty and holds position when
+                        carrying a cube.
                     </p>
-                    <div class="math-block">
-                        $$\boldsymbol{\tau} = \mathbf{M}(\hat{\mathbf{q}})\ddot{\mathbf{q}}_{cmd} + \mathbf{c}(\hat{\mathbf{q}}, \dot{\hat{\mathbf{q}}}) - \boldsymbol{\tau}_{passive}$$
-                        $$\ddot{\mathbf{q}}_{cmd} = \ddot{\mathbf{q}}_{des} - \mathbf{K}_q (\hat{\mathbf{q}} - \mathbf{q}_{des}) - \mathbf{K}_v (\dot{\hat{\mathbf{q}}} - \dot{\mathbf{q}}_{des}) - \mathbf{K}_i \int (\hat{\mathbf{q}} - \mathbf{q}_{des}) dt$$
+                </div>
+
+                <div class="grid-3">
+                    <div class="card">
+                        <h3 class="card-title">
+                            1. Empty-Gripper Tracking
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                An overhead RGB-D camera detects the configured
+                                cyan intruder and estimates its motion with a
+                                position/velocity Kalman filter.
+                            </p>
+
+                            <p>
+                                When the gripper is empty, the stacking sequence
+                                pauses. Wrist-camera gaze and distance feedback
+                                track the object with a nominal 0.22 m standoff,
+                                bounded joint rates and joint-limit handling.
+                            </p>
+                        </div>
                     </div>
-                    <p style="color:var(--text-secondary); font-size: 0.9rem;">
-                        <strong>Optimal Gains (Bryson's Rule):</strong> $\mathbf{K}_q = 29.3648$, $\mathbf{K}_v = 8.5409$, $\mathbf{K}_i = 21.9352$.<br>
-                        <strong>Stability Proof:</strong> Discrete closed-loop pole maximum magnitude $|\lambda| = 0.989901 < 1.00$ (strictly stable).
-                    </p>
-                </div>
 
-                <div class="card">
-                    <div class="card-title">6-DOF Position-Based Visual Servoing</div>
-                    <p style="color:var(--text-secondary); margin-bottom: 0.8rem;">
-                        Closed-loop task-space velocity regulation with adaptive Damped Least Squares (DLS):
-                    </p>
-                    <div class="math-block">
-                        $$\mathbf{v}_{task} = \begin{bmatrix} K_p (\mathbf{p}_{target} - \mathbf{p}_{tcp}) \\ K_r \text{rotvec}(\mathbf{R}_{target} \mathbf{R}_{tcp}^T) \end{bmatrix}, \quad \dot{\mathbf{q}} = \mathbf{J}^T (\mathbf{J}\mathbf{J}^T + \lambda^2 \mathbf{I})^{-1} \mathbf{v}_{task}$$
+                    <div class="card">
+                        <h3 class="card-title">
+                            2. Proximity and Motion Limits
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                Configured safety distances are 0.22 m standoff,
+                                0.16 m warning and 0.06 m critical proximity.
+                                The controller uses its configured camera and
+                                pinch-point geometry.
+                            </p>
+
+                            <p>
+                                Critical proximity requests a stop response.
+                                Commands are limited or decelerated by the
+                                simulation's safety state machine. Finite camera
+                                sampling and actuator dynamics mean this is not
+                                an instantaneous physical stop.
+                            </p>
+                        </div>
                     </div>
-                    <ul style="color:var(--text-secondary); margin-left: 1.2rem; font-size: 0.9rem;">
-                        <li>$K_p = 1.20$, $K_r = 1.00$ ensures smooth exponential error decay without overshoot.</li>
-                        <li>DLS damping $\lambda$ dynamically engages when $\sigma_{min}(\mathbf{J}) < 0.05$ to prevent singularity joint rate blowup.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Part E: Safety & Robustness -->
-    <section id="safety">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Part E &bull; 20 Marks</div>
-                <h2 class="section-title">Integration & Reactive Safety Supervisor</h2>
-                <p class="section-desc">Dynamic obstacle tracking via overhead 3D Kalman Filter, layered collision avoidance, and payload fail-safe carry hold.</p>
-            </div>
+                    <div class="card">
+                        <h3 class="card-title">
+                            3. Carry Hold and Resume
+                        </h3>
 
-            <div class="grid-3">
-                <div class="card">
-                    <div class="card-title" style="color:var(--accent-blue);">1. Standoff Zone (0.22m)</div>
-                    <p style="color:var(--text-secondary); font-size: 0.95rem;">
-                        When an intruder sphere is detected, the avoidance controller computes repulsive velocity vectors to guide the arm around the intruder while continuing the task.
-                    </p>
-                </div>
+                        <div class="copy">
+                            <p>
+                                When the task indicates a cube is being carried,
+                                a confirmed intrusion latches an estimated joint
+                                pose. The controller maintains that pose and
+                                retains the gripper command.
+                            </p>
 
-                <div class="card">
-                    <div class="card-title" style="color:var(--accent-red);">2. Safety Stop (< 0.06m)</div>
-                    <p style="color:var(--text-secondary); font-size: 0.95rem;">
-                        If the obstacle penetrates within $60\text{ mm}$ of the robot arm or pinch site, motion is immediately halted (<code class="inline">SAFETY STOP</code>) until clearance is verified.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <div class="card-title" style="color:var(--accent-purple);">3. Cube Carry Hold & Resume</div>
-                    <p style="color:var(--text-secondary); font-size: 0.95rem;">
-                        If the robot is carrying a cube, <code class="inline">CubeCarrySafetySupervisor</code> freezes joint poses to prevent dropping. Once cleared, it calculates a smooth return trajectory back to the interrupted task.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- High Distinction Hardware Live Demo -->
-    <section id="hardware">
-        <div class="container">
-            <div class="hd-banner">
-                <span class="hd-badge">&starf; HIGH DISTINCTION EVIDENCE</span>
-                <h2 style="font-family:var(--font-heading); font-size:2rem; margin-bottom: 0.8rem; color:#fff;">
-                    Real Hardware Implementation: UR3e + RealSense D435i + RG2 Gripper
-                </h2>
-                <p style="color:var(--text-secondary); max-width:850px; font-size: 1.05rem;">
-                    In accordance with Section 1 of the marking criteria, our team deployed the perception, visual servoing, and grasp pipeline onto a physical Universal Robots UR3e manipulator with an OnRobot RG2 gripper and an external Intel RealSense D435i depth camera.
-                </p>
-            </div>
-
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Dimension / Metric</th>
-                            <th>MuJoCo Simulation</th>
-                            <th>Physical UR3e Setup</th>
-                            <th>Engineering Adaptation & Key Learnings</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Camera Configuration</strong></td>
-                            <td>Wrist-Mounted (Eye-in-Hand)</td>
-                            <td>Stationary Tripod (Eye-to-Hand)</td>
-                            <td>Calculated extrinsic transformation $[\mathbf{R} \mid \mathbf{t}]$ via 4-point SVD correspondence from optical frame to robot base.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Depth Map Quality</strong></td>
-                            <td>Synthetic noise-free Z-buffer</td>
-                            <td>Active IR stereo with specular table dropouts</td>
-                            <td>Applied RealSense SDK Threshold, Spatial, Temporal, and Hole-Filling post-processing filters.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>End-Effector Occlusion</strong></td>
-                            <td>Non-occluding raycast</td>
-                            <td>Gripper and wrist cast shadows and block line-of-sight during descent</td>
-                            <td><strong>Target Memory Lock:</strong> Freezes visual coordinates into memory once stable so descent shadows cannot corrupt target position.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Control Interface</strong></td>
-                            <td>Direct torque stream ($\mathbf{M}\ddot{\mathbf{q}} + \mathbf{c}$)</td>
-                            <td>UR RTDE socket streaming (<code class="inline">speedJ</code>)</td>
-                            <td>Passed $80\text{ ms}$ lookahead time buffer to eliminate Error <code class="inline">C271A1</code> real-time thread starvation.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Grasp Descent Clearance</strong></td>
-                            <td>Exact rigid contact geom</td>
-                            <td>Friction & mechanical finger compliance</td>
-                            <td>Taught final approach elevated $+30\text{ mm}$ above table to clamp cube cleanly without bottoming out.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- Experimental Results & Multi-Seed Analysis -->
-    <section id="results">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Evaluation</div>
-                <h2 class="section-title">Quantitative Multi-Seed Results & Trade-Offs</h2>
-                <p class="section-desc">Performance across randomized cube locations, orientations, and obstacle intrusions.</p>
-            </div>
-
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Trial / Seed</th>
-                            <th>Cubes Detected</th>
-                            <th>Size Sorting</th>
-                            <th>Pick Success</th>
-                            <th>Stack Success</th>
-                            <th>Max PBVS Error</th>
-                            <th>Observer RMSE</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Nominal (Seed None)</strong></td>
-                            <td>3 / 3 + Purple</td>
-                            <td><span class="badge-pass">YES (B &rarr; G &rarr; R)</span></td>
-                            <td>3 / 3 (100%)</td>
-                            <td><span class="badge-pass">3 Cubes Stacked</span></td>
-                            <td>$1.8\text{ mm}$</td>
-                            <td>$0.095^\circ$</td>
-                            <td>Clean baseline execution</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Seed 7</strong></td>
-                            <td>3 / 3 + Purple</td>
-                            <td><span class="badge-pass">YES</span></td>
-                            <td>3 / 3 (100%)</td>
-                            <td><span class="badge-pass">YES</span></td>
-                            <td class="placeholder-text">[INSERT mm]</td>
-                            <td class="placeholder-text">[INSERT deg]</td>
-                            <td class="placeholder-text">[INSERT NOTES]</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Seed 42</strong></td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT mm]</td>
-                            <td class="placeholder-text">[INSERT deg]</td>
-                            <td class="placeholder-text">[INSERT NOTES]</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Seed 100</strong></td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT]</td>
-                            <td class="placeholder-text">[INSERT mm]</td>
-                            <td class="placeholder-text">[INSERT deg]</td>
-                            <td class="placeholder-text">[INSERT NOTES]</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Disturbed (Intruder)</strong></td>
-                            <td>3 / 3 + Purple</td>
-                            <td><span class="badge-pass">YES</span></td>
-                            <td>3 / 3 (100%)</td>
-                            <td><span class="badge-pass">YES</span></td>
-                            <td class="placeholder-text">[INSERT mm]</td>
-                            <td class="placeholder-text">[INSERT deg]</td>
-                            <td>Avoidance engaged; payload held and resumed cleanly</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="grid-2" style="margin-top: 2rem;">
-                <div class="card">
-                    <div class="card-title">Trade-Off: Estimator Bandwidth vs Noise</div>
-                    <p style="color:var(--text-secondary); font-size: 0.92rem; margin-bottom: 0.8rem;">
-                        <strong>Scaling Measurement Noise $R$:</strong>
-                    </p>
-                    <ul style="color:var(--text-secondary); font-size: 0.9rem; margin-left: 1.2rem;">
-                        <li>Scaling $R$ by $0.1\times$ increases filter bandwidth and responsiveness but feeds encoder quantization ripple into computed torque derivatives, causing actuator chatter.</li>
-                        <li>Scaling $R$ by $10\times$ provides ultra-smooth torque commands but introduces a $12\text{ ms}$ phase lag during sharp trajectory reversals.</li>
-                    </ul>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Trade-Off: Control Effort vs Convergence</div>
-                    <p style="color:var(--text-secondary); font-size: 0.92rem; margin-bottom: 0.8rem;">
-                        <strong>Scaling Visual Servoing Gain $K_p$:</strong>
-                    </p>
-                    <ul style="color:var(--text-secondary); font-size: 0.9rem; margin-left: 1.2rem;">
-                        <li>Higher gains ($K_p > 1.8$) reduce convergence time from $2.4\text{ s}$ to $1.2\text{ s}$, but risk overshoot and gripper collision near the table surface.</li>
-                        <li>$K_p = 1.20$ guarantees strictly overdamped, monotonic descent without overshoot.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Team & Contributions -->
-    <section id="team">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-eyebrow">Personnel</div>
-                <h2 class="section-title">Team Members & Individual Contributions</h2>
-                <p class="section-desc">Group 32 &bull; 41014 Sensors and Control in Mechatronics Systems</p>
-            </div>
-
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Member Name</th>
-                            <th>Student ID</th>
-                            <th>Primary Focus Areas</th>
-                            <th>Executive Contribution Summary</th>
-                            <th>Split</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Flynn Worner</strong></td>
-                            <td style="font-family:var(--font-mono); color:var(--accent-blue);">24783452</td>
-                            <td>Safety Net, Overhead Vision & Media</td>
-                            <td>Architected overhead camera pipeline & dynamic safety interrupt; engineered 3D visual servo tracking of intruder cube with payload carry-hold; scripted, filmed, and edited 5-min demonstration video; co-authored web documentation.</td>
-                            <td><strong>50%</strong></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Ryan Gleeson</strong></td>
-                            <td style="font-family:var(--font-mono); color:var(--accent-blue);">24838462</td>
-                            <td>Simulation, Wrist Vision & Controls</td>
-                            <td>Established GitHub repository environment; modeled UR3 physics in MuJoCo; derived 12-state double-integrator dynamics & PBH proofs; engineered wrist-camera stacking sequence & block selection logic; co-authored web documentation.</td>
-                            <td><strong>50%</strong></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Detailed Technical Breakdown -->
-            <div class="grid-2" style="margin-top: 2rem;">
-                <!-- Flynn Worner Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span>Flynn Worner</span>
-                        <span class="tag tag-blue">ID: 24783452 &bull; 50%</span>
+                            <p>
+                                Physics, perception and estimation continue.
+                                After the configured clearance period, the arm
+                                returns smoothly to the interrupted task
+                                reference and resumes the sequence.
+                            </p>
+                        </div>
                     </div>
-                    <div style="color:var(--accent-cyan); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.8rem;">
-                        Safety Interrupt, Overhead Vision Tracking & Video Production
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Detection Integrity and Evaluation Boundaries
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            Cyan detection combines HSV limits, RGB channel
+                            ratios, morphological opening, component area and
+                            interior-thickness checks. These reject thin
+                            green/blue colour-boundary artifacts that previously
+                            caused false detections.
+                        </p>
+
+                        <p>
+                            Operational safety arbitration uses camera tracking
+                            and confirmation states. The keyboard spawn toggle
+                            creates or removes the test obstacle and supplies
+                            evaluation labels; it no longer gates the tracking
+                            response.
+                        </p>
+
+                        <p>
+                            Carrying status is inferred from task and gripper
+                            commands, rather than independently measured grasp
+                            force. The detector recognises a configured cyan
+                            test object, not arbitrary people or obstacles.
+                            This is a simulated safety demonstration, not a
+                            certified human-safety system.
+                        </p>
+
+                        <p>
+                            Logged states distinguish tracking, carrying hold,
+                            recovery and resuming. An observed tracking-divergence
+                            recovery is retained in the results rather than
+                            omitted from the trial history.
+                        </p>
                     </div>
-                    <ul style="color:var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem; line-height: 1.6;">
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Overhead Vision & Safety Interrupt System:</strong> Calibrated overhead RGB-D depth camera in world coordinates ($\mathbf{T}_{cam}^{world}$); implemented continuous workspace surveillance with dual dynamic zones: Caution Envelope ($r_{warn} = 0.45\text{ m}$) enforcing smooth velocity derating, and Hazard Emergency Envelope ($r_{stop} = 0.30\text{ m}$) executing hard trajectory hold.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Visual Servo Tracking of Foreign Intruder:</strong> Engineered 3D Kalman filter tracking ($\mathbf{x} = [x, y, z, \dot{x}, \dot{y}, \dot{z}]^T$) to estimate foreign cube trajectories; integrated reactive state-machine interrupt with payload carry-hold lock, ensuring mechanical grip pressure is maintained and blocks are never dropped during safety halts.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Live Robot Hardware Deployment:</strong> Deployed and tested real-world UR3e manipulator with Intel RealSense D435i and OnRobot RG2 gripper; resolved RTDE socket starvation (UR controller Error C271A1) via asynchronous state buffers; calibrated eye-to-hand transformation matrix.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Video Production & Media Direction:</strong> Scripted, voiced, filmed, and produced the full 5-minute technical demonstration video (<a href="https://youtu.be/c2Uq0gsToqM" target="_blank" style="color:var(--accent-blue);">YouTube Link</a>); created picture-in-picture composites synchronizing MuJoCo 3D motion with the real-time OpenCV Estimation Plotter HUD; indexed all chapter markers.
+                </div>
+            </div>
+        </section>
+
+        <!-- Hardware section retained from the supplied page. -->
+        <section id="hardware">
+            <div class="container">
+                <div class="hd-banner">
+                    <span class="hd-badge">&starf; HIGH DISTINCTION EVIDENCE</span>
+                    <h2 style="font-family:var(--font-heading); font-size:2rem; margin-bottom: 0.8rem; color:#fff;">
+                        Real Hardware Implementation: UR3e + RealSense D435i + RG2 Gripper
+                    </h2>
+                    <p style="color:var(--text-secondary); max-width:850px; font-size: 1.05rem;">
+                        In accordance with Section 1 of the marking criteria, our team deployed the perception, visual servoing, and grasp pipeline onto a physical Universal Robots UR3e manipulator with an OnRobot RG2 gripper and an external Intel RealSense D435i depth camera.
+                    </p>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dimension / Metric</th>
+                                <th>MuJoCo Simulation</th>
+                                <th>Physical UR3e Setup</th>
+                                <th>Engineering Adaptation &amp; Key Learnings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Camera Configuration</strong></td>
+                                <td>Wrist-Mounted (Eye-in-Hand)</td>
+                                <td>Stationary Tripod (Eye-to-Hand)</td>
+                                <td>Calculated extrinsic transformation $[\mathbf{R} \mid \mathbf{t}]$ via 4-point SVD correspondence from optical frame to robot base.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Depth Map Quality</strong></td>
+                                <td>Synthetic noise-free Z-buffer</td>
+                                <td>Active IR stereo with specular table dropouts</td>
+                                <td>Applied RealSense SDK Threshold, Spatial, Temporal, and Hole-Filling post-processing filters.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>End-Effector Occlusion</strong></td>
+                                <td>Non-occluding raycast</td>
+                                <td>Gripper and wrist cast shadows and block line-of-sight during descent</td>
+                                <td><strong>Target Memory Lock:</strong> Freezes visual coordinates into memory once stable so descent shadows cannot corrupt target position.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Control Interface</strong></td>
+                                <td>Direct torque stream ($\mathbf{M}\ddot{\mathbf{q}} + \mathbf{c}$)</td>
+                                <td>UR RTDE socket streaming (<code class="inline">speedJ</code>)</td>
+                                <td>Passed $80\text{ ms}$ lookahead time buffer to eliminate Error <code class="inline">C271A1</code> real-time thread starvation.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Grasp Descent Clearance</strong></td>
+                                <td>Exact rigid contact geom</td>
+                                <td>Friction &amp; mechanical finger compliance</td>
+                                <td>Taught final approach elevated $+30\text{ mm}$ above table to clamp cube cleanly without bottoming out.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="results">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Evaluation</div>
+                    <h2 class="section-title">
+                        Documented Results and Robustness Tests
+                    </h2>
+                    <p class="section-desc">
+                        Results below separate logged quantitative evidence,
+                        operator-confirmed completion and tests from earlier
+                        development versions.
+                    </p>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Trial</th>
+                                <th scope="col">Detection and order</th>
+                                <th scope="col">Task outcome</th>
+                                <th scope="col">
+                                    Largest logged PBVS convergence error
+                                </th>
+                                <th scope="col">Evidence and qualification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Seed 7: baseline</strong></td>
+                                <td>
+                                    Three cubes and purple detected;
+                                    blue &rarr; green &rarr; red
+                                </td>
+                                <td class="badge-pass">
+                                    Three placements visually confirmed;
+                                    sequence completed
+                                </td>
+                                <td>2.4 mm; 1.0&deg;</td>
+                                <td>
+                                    All 12 PBVS phases reported convergence.
+                                    Completion message present in the console log.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><strong>Seed 7: carrying intrusion</strong></td>
+                                <td>
+                                    Three cubes and purple detected;
+                                    largest-to-smallest order
+                                </td>
+                                <td class="badge-pass">
+                                    Carry hold and resume;
+                                    three placements visually confirmed
+                                </td>
+                                <td>2.6 mm; 1.4&deg;</td>
+                                <td>
+                                    All 12 PBVS phases converged.
+                                    The run was stopped during the final
+                                    observation after all placements.
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Seed 7: empty and carrying interruptions
+                                    </strong>
+                                </td>
+                                <td>
+                                    Camera-triggered tracking and carrying hold
+                                </td>
+                                <td>
+                                    Resume transitions logged;
+                                    full completion reported by the operator
+                                </td>
+                                <td>
+                                    Complete-run quantitative summary not
+                                    available in the supplied excerpt
+                                </td>
+                                <td>
+                                    Two empty-gripper interruptions and a
+                                    carrying hold were demonstrated. One 8&deg;
+                                    tracking-divergence recovery occurred.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="copy">
+                    <p>
+                        <strong>Metric definition:</strong>
+                        “Largest logged PBVS convergence error” is the maximum
+                        of the terminal error values printed when each phase
+                        converged. Translation and rotation maxima are calculated
+                        separately. These are not the maximum errors encountered
+                        during the approach, nor independent ground-truth
+                        placement errors.
+                    </p>
+
+                    <p>
+                        <strong>Scope of the result:</strong>
+                        Three placements in one run describe that trial.
+                        They do not establish a general 100% success rate across
+                        unseen configurations.
+                    </p>
+                </div>
+
+                <div class="grid-2 mt">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Visually Estimated Placement Errors
+                        </h3>
+
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Cube</th>
+                                        <th scope="col">Baseline XY / Z</th>
+                                        <th scope="col">Carry trial XY / Z</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Blue</td>
+                                        <td>1.5 / 0.1 mm</td>
+                                        <td>0.5 / 1.6 mm</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Green</td>
+                                        <td>2.7 / 0.3 mm</td>
+                                        <td>1.0 / 0.3 mm</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Red</td>
+                                        <td>0.6 / 0.4 mm</td>
+                                        <td>1.2 / 0.2 mm</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="note">
+                            These are camera-derived acceptance measurements
+                            relative to the task's estimated support target.
+                            They share perception and calibration assumptions
+                            with the controller and are not independent
+                            ground-truth accuracy measurements.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Randomisation and Historical Tests
+                        </h3>
+
+                        <div class="copy">
+                            <p>
+                                Cube positions and yaw are randomised. Cube
+                                centres spawn within X = 0.22–0.38 m and
+                                Y = 0.08–0.24 m, with minimum spacing.
+                                The purple destination is also randomised.
+                            </p>
+
+                            <p>
+                                Seeds 1, 2, 3 and 7 were reported successful
+                                during development. Those tests span earlier
+                                implementations and are not pooled into a final
+                                version success percentage.
+                            </p>
+
+                            <p>
+                                Earlier encoder-noise experiments used 0.05,
+                                0.10 and 0.20 degrees. The quantitative final
+                                configuration documented here uses 0.20 degrees.
+                                Earlier results should retain their original
+                                code-version and feedback-mode labels.
+                            </p>
+
+                            <p>
+                                Random cube size is not enabled by the current
+                                scene initialisation. Size ordering is measured
+                                from vision, but valid size changes must still
+                                satisfy detector, spacing, gripper and reach limits.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Evidence Identification
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            The documented baseline uses log identifier
+                            <code class="inline">
+                                seed_7_1793694768398746900
+                            </code>.
+                            The carrying trial uses
+                            <code class="inline">
+                                seed_7_1793698353478272700
+                            </code>.
+                            The combined interruption excerpt uses
+                            <code class="inline">
+                                seed_7_1793699885696405900
+                            </code>.
+                        </p>
+
+                        <p>
+                            Each identifier corresponds to PBVS, observer and
+                            safety CSV filenames with the prefixes
+                            <code class="inline">pbvs_</code>,
+                            <code class="inline">observer_</code> and
+                            <code class="inline">safety_</code>.
+                            Reported values above were extracted from the
+                            associated console output.
+                        </p>
+
+                        <p>
+                            PBVS logs describe measurement validity,
+                            phase errors, commands and convergence.
+                            Observer logs contain noisy readings, estimates,
+                            uncertainty and evaluation truth.
+                            Safety logs relate obstacle events, state transitions
+                            and robot motion for response evaluation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid-2 mt">
+                    <div class="card">
+                        <h3 class="card-title">
+                            Engineering Trade-Offs
+                        </h3>
+
+                        <div class="copy">
+                            <ul>
+                                <li>
+                                    <strong>Noise rejection versus responsiveness:</strong>
+                                    Filter tuning balances noisy measurements
+                                    against confidence in the acceleration model.
+                                </li>
+                                <li>
+                                    <strong>Speed versus visibility:</strong>
+                                    Faster scanning reduces search time but
+                                    leaves fewer frames for stable detection.
+                                </li>
+                                <li>
+                                    <strong>Servo speed versus smoothness:</strong>
+                                    Lower phase gains and rate limits slow
+                                    convergence but reduce abrupt commands near
+                                    grasp and placement poses.
+                                </li>
+                                <li>
+                                    <strong>Visibility versus transport coverage:</strong>
+                                    Recorded targets guide initial transport;
+                                    live PBVS takes over once the support target
+                                    is accepted in view.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            Remaining Validation Limits
+                        </h3>
+
+                        <div class="copy">
+                            <ul>
+                                <li>
+                                    Repeat the final implementation across
+                                    multiple seeds and noise settings before
+                                    claiming broad robustness.
+                                </li>
+                                <li>
+                                    Separate active task metrics from prolonged
+                                    stationary holding and safety pauses.
+                                </li>
+                                <li>
+                                    Evaluate placement independently against
+                                    simulator ground truth for accuracy reporting,
+                                    without feeding that truth into task control.
+                                </li>
+                                <li>
+                                    Measure false detections, detection latency,
+                                    stop distance and holding drift from safety
+                                    logs before making numerical safety claims.
+                                </li>
+                                <li>
+                                    A successful recovery in one trial does not
+                                    establish recovery from every IK, visibility
+                                    or generator failure.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reproducibility">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Reproducibility</div>
+                    <h2 class="section-title">
+                        Running the Simulation and Understanding the Files
+                    </h2>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Simulation Launch</h3>
+
+                    <div class="copy">
+                        <p>
+                            Use the project virtual environment, install the
+                            supplied requirements and run the simulation from
+                            the repository root. The compiled model
+                            <code class="inline">models/ur3_complete.xml</code>
+                            and its referenced mesh assets must be present.
+                        </p>
+                    </div>
+
+                    <pre><code>python -m pip install -r requirements.txt
+python .\main.py --seed 7</code></pre>
+
+                    <div class="copy mt">
+                        <p>
+                            Press Q in the camera window to exit.
+                            Space or P toggles the test obstacle.
+                            WASD or arrow keys move it horizontally;
+                            E/C or Page Up/Page Down change its height.
+                        </p>
+
+                        <p>
+                            The website is static HTML. Updating this page
+                            requires committing and pushing
+                            <code class="inline">docs/index.html</code>,
+                            followed by the GitHub Pages deployment.
+                            It does not require recompiling the MuJoCo model.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">File</th>
+                                <th scope="col">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code class="inline">main.py</code></td>
+                                <td>Reads launch arguments and starts the simulation.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">simulation.py</code></td>
+                                <td>
+                                    Builds the runtime scene, steps physics,
+                                    coordinates perception, control, safety,
+                                    visual verification and logs.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">robot_utils.py</code></td>
+                                <td>Model lookups, joint limits and IK helpers.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">observation.py</code></td>
+                                <td>Workspace scanning and observation movements.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">vision.py</code></td>
+                                <td>
+                                    Colour detection, depth reconstruction,
+                                    estimated frame transforms, size and pose
+                                    measurement, and stability checks.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">estimation.py</code></td>
+                                <td>
+                                    Noisy encoder generation, joint Kalman filters
+                                    and observer evaluation logging.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">estimation_plotter.py</code></td>
+                                <td>Live estimation and uncertainty visualisation.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">joint_model.py</code></td>
+                                <td>Nominal model and controllability/observability checks.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">joint_controller.py</code></td>
+                                <td>LQI design, nominal pole analysis and acceleration feedback.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">torque_controller.py</code></td>
+                                <td>Maps acceleration commands to bounded motor commands.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">pbvs.py</code></td>
+                                <td>Camera-frame pose corrections and Jacobian-based joint rates.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">stacking.py</code></td>
+                                <td>Task sequencing, grasping, transport, placement and verification requests.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">safety_monitor.py</code></td>
+                                <td>Intrusion detection, object filtering, avoidance and carrying hold.</td>
+                            </tr>
+                            <tr>
+                                <td><code class="inline">safety_logger.py</code></td>
+                                <td>Safety events and evaluation measurements.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="team">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Personnel</div>
+                    <h2 class="section-title">
+                        Team Members &amp; Individual Contributions
+                    </h2>
+                    <p class="section-desc">
+                        Group 32 &bull; 41014 Sensors and Control
+                        in Mechatronics Systems
+                    </p>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Member</th>
+                                <th scope="col">Student ID</th>
+                                <th scope="col">Primary focus</th>
+                                <th scope="col">Contribution summary</th>
+                                <th scope="col">Split</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Flynn Worner</strong></td>
+                                <td>24783452</td>
+                                <td>Safety, overhead vision and media</td>
+                                <td>
+                                    Overhead monitoring, intrusion tracking,
+                                    safety interrupts and carrying hold;
+                                    physical deployment; demonstration video
+                                    and shared website documentation.
+                                </td>
+                                <td><strong>50%</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ryan Gleeson</strong></td>
+                                <td>24838462</td>
+                                <td>Simulation, wrist vision and controls</td>
+                                <td>
+                                    Simulation integration, state-space modelling,
+                                    joint estimation and feedback, wrist-camera
+                                    stacking, verification, repository setup
+                                    and shared website documentation.
+                                </td>
+                                <td><strong>50%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid-2 mt">
+                    <div class="card">
+                        <h3 class="card-title">
+                            <span>Flynn Worner</span>
+                            <span class="tag tag-blue">24783452 &bull; 50%</span>
+                        </h3>
+
+                        <div class="copy">
+                            <ul>
+                                <li>
+                                    <strong>Overhead vision and safety:</strong>
+                                    Workspace surveillance, cyan intrusion
+                                    detection and object-motion estimation.
+                                </li>
+                                <li>
+                                    <strong>Reactive handling:</strong>
+                                    Camera tracking, nominal 0.22 m standoff,
+                                    configured 0.16 m warning and 0.06 m critical
+                                    distances, and carrying hold/resume integration.
+                                </li>
+                                <li>
+                                    <strong>Live Robot Hardware Deployment:</strong>
+                                    Deployed and tested real-world UR3e manipulator
+                                    with Intel RealSense D435i and OnRobot RG2
+                                    gripper; resolved RTDE socket starvation
+                                    (UR controller Error C271A1) via asynchronous
+                                    state buffers; calibrated eye-to-hand
+                                    transformation matrix.
+                                </li>
+                                <li>
+                                    <strong>Video and documentation:</strong>
+                                    Scripted, filmed and edited the demonstration,
+                                    with shared website preparation.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="card-title">
+                            <span>Ryan Gleeson</span>
+                            <span class="tag tag-purple">24838462 &bull; 50%</span>
+                        </h3>
+
+                        <div class="copy">
+                            <ul>
+                                <li>
+                                    <strong>Simulation architecture:</strong>
+                                    Integrated the UR3, gripper, cameras, scene,
+                                    joint actuation and contact configuration.
+                                </li>
+                                <li>
+                                    <strong>Modelling and feedback:</strong>
+                                    Implemented the nominal 12-state model,
+                                    rank checks, Kalman joint observer and
+                                    computed-torque LQI integration at 100 Hz.
+                                </li>
+                                <li>
+                                    <strong>Wrist perception and stacking:</strong>
+                                    Integrated scanning, colour segmentation,
+                                    RGB-D size/pose measurement, PBVS pickup and
+                                    placement alignment, trajectory segments
+                                    and visual task checks.
+                                </li>
+                                <li>
+                                    <strong>Testing and documentation:</strong>
+                                    Managed seed and noise experiments,
+                                    evaluation logs, repository organisation
+                                    and shared technical reporting.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt">
+                    <h3 class="card-title">
+                        Academic Integrity &amp; Generative AI Statement
+                    </h3>
+
+                    <div class="copy">
+                        <p>
+                            Generative AI tools used during development include
+                            ChatGPT/Codex and Google Antigravity IDE.
+                            Assistance included explanations of sensing and
+                            control methods, code drafting and restructuring,
+                            debugging, test planning, interpretation of supplied
+                            outputs and preparation of documentation.
+                        </p>
+
+                        <p>
+                            AI-generated suggestions are not independent
+                            experimental evidence. The student authors remain
+                            responsible for reviewing the implementation,
+                            checking mathematical claims, executing tests and
+                            ensuring that submitted descriptions and results
+                            match the project.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="references">
+            <div class="container">
+                <div class="section-header">
+                    <div class="section-eyebrow">Sources and acknowledgement</div>
+                    <h2 class="section-title">
+                        Software, Models and Project Evidence
+                    </h2>
+                </div>
+
+                <div class="card copy">
+                    <ul>
+                        <li>
+                            <a
+                                href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >Project repository</a>:
+                            implementation, configuration and project documentation.
                         </li>
                         <li>
-                            <strong>Landing Page & Technical Report:</strong> Collaborated 50/50 with Ryan on GitHub Pages site architecture, styling tokens, video showcase UI, and technical report writing.
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Ryan Gleeson Card -->
-                <div class="card">
-                    <div class="card-title">
-                        <span>Ryan Gleeson</span>
-                        <span class="tag tag-purple">ID: 24838462 &bull; 50%</span>
-                    </div>
-                    <div style="color:var(--accent-purple); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.8rem;">
-                        Simulation, State-Space Modelling & Autonomous Stacking
-                    </div>
-                    <ul style="color:var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem; line-height: 1.6;">
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>GitHub Environment & Project Architecture:</strong> Established repository layout, Git branching strategy (`main` branch `/docs` publishing for GitHub Pages), automated package requirements, and isolated virtual environment configurations.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>MuJoCo Physics Simulation Environment:</strong> Modeled the 6-DOF UR3 robotic manipulator within MuJoCo XML, configuring inertial parameters, mesh collision geoms, joint transmission limits, friction coefficients, and contact solver dynamics with a $2\text{ ms}$ physics timestep.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Mathematical State-Space Formulation:</strong> Derived continuous and discrete 12-state double-integrator dynamics ($\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D}$) with exact matrix exponential zero-order hold discretization at $500\text{ Hz}$; proved full controllability ($\text{rank}(\mathcal{C}) = 12$) and observability ($\text{rank}(\mathcal{O}) = 12$) via PBH rank tests.
-                        </li>
-                        <li style="margin-bottom: 0.6rem;">
-                            <strong>Wrist Camera Stacking & Selection Logic:</strong> Implemented eye-in-hand perception pipeline ($\mathbf{T}_c^{ee}$), automated workspace raster scan trajectories, HSV color-space segmentation, and SVD plane-fitting to extract top-surface normal vectors ($|\hat{n}_z| \ge 0.95$); designed closed-loop 6-DOF PBVS descent to execute precision stacking.
+                            <a
+                                href="https://github.com/google-deepmind/mujoco_menagerie"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >MuJoCo Menagerie</a>:
+                            source model assets used in assembling the simulated
+                            robot, gripper and camera. Retain the applicable
+                            asset-specific licence and attribution files.
                         </li>
                         <li>
-                            <strong>Landing Page & Technical Report:</strong> Collaborated 50/50 with Flynn on GitHub Pages design, responsive CSS stylesheets, MathJax LaTeX equations, and technical validation.
+                            <a
+                                href="https://mujoco.readthedocs.io/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >MuJoCo documentation</a>:
+                            simulation, rendering, kinematics and dynamics APIs.
+                        </li>
+                        <li>
+                            <a
+                                href="https://petercorke.github.io/robotics-toolbox-python/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >Robotics Toolbox for Python</a>:
+                            joint trajectory generation.
+                        </li>
+                        <li>
+                            <a
+                                href="https://docs.scipy.org/doc/scipy/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >SciPy</a>,
+                            <a
+                                href="https://numpy.org/doc/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >NumPy</a> and
+                            <a
+                                href="https://docs.opencv.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >OpenCV</a>:
+                            numerical computation, optimisation, filtering,
+                            interpolation and image processing.
+                        </li>
+                        <li>
+                            UTS 41014 tutorial material:
+                            state-space modelling, sensing, estimation,
+                            feedback control and visual servoing.
                         </li>
                     </ul>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <div class="card" style="margin-top: 1.5rem;">
-                <div class="card-title">Academic Integrity & Generative AI Statement</div>
-                <p style="color:var(--text-secondary); font-size: 0.92rem;">
-                    In accordance with UTS academic integrity policy, Generative AI (Google Antigravity IDE) was declared and utilized as an AI pair programmer for debugging socket timing conflicts and optimizing OpenCV rendering performance. All theoretical derivations, mathematical models, controller proofs, and tuning decisions were completed and validated by the student authors.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer>
         <div class="container">
-            <p style="margin-bottom: 0.5rem;">&copy; 2026 Group 32 &bull; 41014 Sensors and Control in Mechatronics Systems &bull; University of Technology Sydney</p>
+            <p style="margin-bottom:0.5rem;">
+                &copy; 2026 Group 32 &bull;
+                41014 Sensors and Control in Mechatronics Systems &bull;
+                University of Technology Sydney
+            </p>
+
             <p>
-                <a href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner" target="_blank">GitHub Repository</a> &bull;
-                <a href="#video">Demo Video</a> &bull;
+                <a
+                    href="https://github.com/24838462/ur3-vision-pick-Gleeson-Worner"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >GitHub Repository</a>
+                &bull;
+                <a href="#video">Demo Video</a>
+                &bull;
                 <a href="#modelling">Technical Documentation</a>
+                &bull;
+                <a href="#results">Results</a>
             </p>
         </div>
     </footer>
-
 </body>
 </html>
